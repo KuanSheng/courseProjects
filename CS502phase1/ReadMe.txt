@@ -1,0 +1,2 @@
+Summary:
+	For project phase one, we mainly deal with process management, which includes process creation/termination, block/unblock, multiprocess scheduling(FCFS, Priority), Synchronization, and communication(Message Passing).
