@@ -11,6 +11,9 @@ import org.apache.hadoop.util.*;
 import org.apache.hadoop.filecache.DistributedCache;
 
 // Query 3 MapReduce job
+/*another implementation by Hao Zhou:
+https://github.com/zhouhao/Hadoop_Project1/blob/master/MapReduceQueries/Query3/query3.java
+*/
 
 public class QueryThree {
 
