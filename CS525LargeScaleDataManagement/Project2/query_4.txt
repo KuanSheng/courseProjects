@@ -1,0 +1,27 @@
+## load customer data
+c = LOAD '/cust/Customers' USING PigStorage(',') AS (id:int, name:chararray, age:int, ctycode:int, salary:float);
+
+## filter by age
+f1 = FILTER c by age < 40;
+
+## group by country code
+g1 = group f1 by ctycode;
+
+## count
+o1 = foreach g1 generate group, COUNT(f1) as yong_count;
+
+## filter by age
+f2 = FILTER c by age > 50;
+
+## group by country code
+g2 = group f2 by ctycode;
+
+## count
+o2 = foreach g2 generate group, COUNT(f2) as old_count;
+
+## join two data
+j1 = join o1 by $0, o2 by $0;
+
+o3 = foreach j1 generate $0, $1, $3;
+
+STORE o3 INTO '/query4_output' USING PigStorage(','); 

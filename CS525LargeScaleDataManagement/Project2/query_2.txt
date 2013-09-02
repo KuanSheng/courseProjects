@@ -1,0 +1,16 @@
+## load customers data
+c = LOAD '/cust/Customers' USING PigStorage(',') AS (id:int, name:chararray, age:int, ctycode:int, salary:float);
+
+## load transaction data
+t = LOAD '/trans/Transactions' USING PigStorage(',') AS (transid:int, custid:int, transtotal:float, itemnum:int, transdesc:chararray);
+
+## join two data
+j1 = join t by custid, c by id;
+
+## group by customer information
+g1 = group j1 by (id, name, salary);
+
+## aggregation
+o = foreach g1 generate group, COUNT(j1), SUM(j1.transtotal), MIN(j1.itemnum);
+## output
+STORE o INTO '/query2_output' USING PigStorage(','); 

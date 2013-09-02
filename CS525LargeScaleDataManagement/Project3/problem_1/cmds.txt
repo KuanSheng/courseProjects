@@ -1,0 +1,19 @@
+javac Generator.java
+java Generator
+bin/hadoop dfs -put ./P ./ 
+bin/hadoop dfs -put ./R ./
+bin/hadoop dfs -mkdir ./spatialJoin
+bin/hadoop dfs -mv ./P ./spatialJoin
+bin/hadoop dfs -mv ./R ./spatialJoin
+
+
+mkdir spatialJoin
+javac -classpath ./hadoop-core-1.1.0.jar -d spatialJoin spatialJoin.java
+jar -cvf ./spatialJoin.jar -C spatialJoin/ .
+bin/hadoop jar spatialJoin.jar edu.wpi.cs525.spatialJoin  /spatialJoin /output1
+bin/hadoop jar spatialJoin.jar edu.wpi.cs525.spatialJoin W[1.0,1.0,1000.0,100.0] /user/ubuntu/spatialJoin /output2
+
+bin/hadoop jar spatialJoin.jar edu.wpi.cs525.spatialJoin W[10.0,100.0,500.0,4000.0] /user/ubuntu/spatialJoin /output12
+
+bin/hadoop jar spatialJoin.jar edu.wpi.cs525.spatialJoin W[10.0,1000.0,5000.0,4000.0] /user/ubuntu/spatialJoin /output13
+

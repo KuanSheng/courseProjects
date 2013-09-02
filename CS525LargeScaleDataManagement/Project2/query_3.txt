@@ -1,0 +1,27 @@
+## load customers data
+TinyA= LOAD '/cust/Customers' USING PigStorage(',') AS (ID: int, Name: chararray, Age: int, CountryCode: int, Salary: float);
+
+## projector desired columns of customers
+TinyB= FOREACH TinyA GENERATE ID, CountryCode;
+
+
+## load transactions data
+BigA = LOAD '/trans/Transactions' USING PigStorage(',') AS (TransID: int, CustomerID: int, TransTotal: float, TransNumItems: int, TransDesc: chararray);
+
+## projector desired colums of transactions
+BigB = FOREACH BigA GENERATE TransID, CustomerID, TransTotal;
+
+## join by customer id
+C   = JOIN BigB BY CustomerID, TinyB BY ID;
+
+## group by countrycode
+D   = group C by CountryCode;
+
+## aggregation
+E   = foreach D {
+	unique_id = DISTINCT C.ID;	 /*move replication*/
+	generate group, COUNT(unique_id), MIN(C.TransTotal), MAX(C.TransTotal);
+};
+
+## output
+store E into '/query3_output' using PigStorage(','); 

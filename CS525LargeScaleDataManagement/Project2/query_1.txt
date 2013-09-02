@@ -1,0 +1,14 @@
+## load transactions data
+A = LOAD '/trans/Transactions' USING PigStorage(',') AS (TransID: int, CustomerID: int, TransTotal: float, TransNumItems: int, TransDesc: chararray);
+
+## projector desired columns
+B = FOREACH A GENERATE TransID, CustomerID, TransTotal;
+
+## group by customer id
+C = GROUP B BY CustomerID;
+
+## aggregation
+D = FOREACH C GENERATE group, COUNT(B.TransID), SUM(B.TransTotal);
+
+## output
+STORE D INTO '/query1_output' USING PigStorage(',');
