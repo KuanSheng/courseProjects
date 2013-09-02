@@ -53,7 +53,8 @@ public class QueryThree {
 		String line = value.toString();
         String[] data = line.split(",");
 
-        //Integer transID = Integer.parseInt(data[0]);
+        
+//Integer transID = Integer.parseInt(data[0]);
         Integer custId = Integer.parseInt(data[1]);
         Float transTotal = Float.parseFloat(data[2]);
         Integer transNumItems = Integer.parseInt(data[3]);
