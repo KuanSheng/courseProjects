@@ -40,5 +40,9 @@ RESHAPE:
 myReshape: update the current length and width and calls the display(). In display(), viewport is properly set 
 according to these parameters.
 
+INSTRUCTIONS ON HOW TO COMPILE AND RUN THE PROGRAM:
+Download or unzip it, go the the directory Project1 and open GLSLExperiment.sln with visual studio. Open file example1.cpp, compile and run. All the functionality required 
+is implemented. So just try all the homework requirements.
+
 @author: Jiefeng He
   Email: jiefenghaspower@gmail.com
