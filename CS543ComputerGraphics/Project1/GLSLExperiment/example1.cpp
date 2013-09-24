@@ -428,7 +428,7 @@ void myMouse( int button, int state, int x, int y)
 							glViewport(0, 0, len, width);
 						}
 						ProjLoc = glGetUniformLocation( program, "Proj");
-						ortho = Ortho2D(0.0, len+0.0, 0.0, width+0.0);
+						ortho = Ortho2D(0.0, iniLen+0.0, 0.0, iniWidth+0.0);
 						glUniformMatrix4fv( ProjLoc, 1, GL_FALSE, ortho);
 						glBufferData( GL_ARRAY_BUFFER, sizeof(drawLines[groupNumb]), &drawLines[groupNumb], GL_STATIC_DRAW );
 						glDrawArrays( GL_POINTS, 0, 1 );	
@@ -454,7 +454,7 @@ void myMouse( int button, int state, int x, int y)
 								glViewport(0, 0, len, width);
 							}
 							ProjLoc = glGetUniformLocation( program, "Proj");
-							ortho = Ortho2D(0.0, len+0.0, 0.0, width+0.0);
+							ortho = Ortho2D(0.0, iniLen+0.0, 0.0, iniWidth+0.0);
 							glUniformMatrix4fv( ProjLoc, 1, GL_FALSE, ortho);
 							glBufferData( GL_ARRAY_BUFFER, sizeof(drawLines[groupNumb]), &drawLines[groupNumb], GL_STATIC_DRAW );
 							glDrawArrays( GL_POINTS, 0, 1 );	
