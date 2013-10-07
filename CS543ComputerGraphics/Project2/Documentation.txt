@@ -1,0 +1,25 @@
+The main architecture remains the same as provided by start code. 
+
+Here comes the brief introduce different functions that implement the project features.
+
+readData(): the PLY files are in */GLSLExperiment/ply_files. This function calls readFile according to the current index number that indicates which file to read from.
+
+readFile(char* fileName): read the PLY format file. Store the vertices and vertex lists. Also find the boundary of the polygons' x,y,z dimension. To make later Rotation movement easier, the vertices are updated to the center.
+
+draw(): initialize buffer data and then call glDrawArrays(). Also draw face normals and bounding box according to the system state.
+
+display(): set up the camera view and the Current Transform Matrix. The distance from camera to the object center is properly chooses. The parameters for setting up CTM is handled by keyboard interaction. Then display calls draw() to implement it.
+
+keyboard(): Different system state is set according to different keyboard interaction.
+
+idle(): this is function is called when the system is idle as registered by glutIdleFunc(). Idle cooperates with system states and CTM. According to different states, it changes CTM parameters a little and make the picture changes as desired. 
+
+Need to mention the pulsing algorithm:
+Use an array to store the face frame for each vertices [number of faces * 3]. So that in idle, each time update the vertices list in the direction of each face frame. It shows an effect of pulsing.
+
+INSTRUCTIONS ON HOW TO COMPILE AND RUN THE PROGRAM:
+Download or unzip it, go the the directory Project2 and open GLSLExperiment.sln with visual studio. Open file example1.cpp, compile and run. All the functionality required 
+is implemented. So just try all the homework requirements.
+
+@author: Jiefeng He
+  Email: jiefenghaspower@gmail.com
