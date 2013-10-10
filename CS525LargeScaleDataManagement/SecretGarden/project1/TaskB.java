@@ -13,7 +13,6 @@ public class TaskB {
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
 	private final static IntWritable one = new IntWritable(1); 
 
-// Only Map is needed in this query
 public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException {
 	
 	String line = value.toString();
@@ -22,7 +21,7 @@ public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable>
 	String[] data = line.split(",");
 	// Get data from array
 	String nationality = data[2];
-	// Get all id which 2 <= countaryCode <= 6
+	// output each nationality with count 1
 	output.collect(new Text(nationality), one);
 
 }
@@ -31,6 +30,7 @@ public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable>
     public static class Reduce extends MapReduceBase implements Reducer<Text, IntWritable, Text, IntWritable>{
 	public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException{
 		int sum=0;
+        //for each nationality count its total number
 		while(values.hasNext())
 			sum += values.next().get();
 		output.collect(key, new IntWritable(sum));
@@ -45,7 +45,6 @@ public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable>
 	conf.setOutputValueClass(IntWritable.class);
 
 	conf.setMapperClass(Map.class);
-	// No reducer is needed
 	//conf.setCombinerClass(Reduce.class);
 	conf.setReducerClass(Reduce.class);
 	//conf.setNumReduceTasks(0);

@@ -25,9 +25,10 @@ public void map(LongWritable key, Text value, OutputCollector<Text, Text> output
 	String name = data[1];
 	String hobby = data[4];
 	String nationality = data[2];
-	// Get all id which 2 <= countaryCode <= 6
+	// Get all name and hobby whose nationality is like below
 	if (nationality.equals("mmmmmmmmmmmmmm"))
 	{
+        //output collected entry
 		output.collect(new Text(name+","+hobby), new Text(""));
 	}
 
