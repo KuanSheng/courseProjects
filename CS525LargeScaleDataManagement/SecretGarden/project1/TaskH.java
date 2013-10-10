@@ -31,13 +31,13 @@ public class TaskH {
 			int byWho = Integer.parseInt(data[0]);
 			int whatPage = Integer.parseInt(data[1]);
 			HashSet<Integer> friendSets1;
-			if(hash.containsKey(byWho)
+			if(hash.containsKey(byWho))
 				friendSets1=hash.get(byWho);
 			else
 				friendSets1=new HashSet<Integer>();
 			friendSets1.add(whatPage);
 			HashSet<Integer> friendSets2;
-			if(hash.containsKey(whatPage)
+			if(hash.containsKey(whatPage))
 				friendSets2=hash.get(whatPage);
 			else
 				friendSets2=new HashSet<Integer>();
@@ -68,9 +68,9 @@ public class TaskH {
 			if(subSets.size()>3){
 				String temp = "";
 				for(Integer integer: subSets)
-					temp += ","+integer
+					temp += ","+integer;
+				output.collect(new Text("Cluster"+k+temp), new Text(""));
 			}
-			output.collect(new Text("Cluster"+k+temp), new Text(""));
 		}
 	}
     }
