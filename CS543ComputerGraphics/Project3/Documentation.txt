@@ -1,2 +1,18 @@
 Project: Hierarchical 3D Modeling of L-System Trees
 Name: Jiefeng He
+
+How to operate on my project:
+In windows system, double click the GLSLExperiment.sln to start the project. Then press F5 to run the project. The system state is initially to generate a forest. If 'a' is pressed, lsys1.txt is draw, 'b' for lsys2.txt, 'c' for lsys3.txt, 'd' for lsys4.txt, 'e' for another customized tree as required. If 'f' is pressed, the forest is draw. In forest, tree, its position and color is randomly picked from a appropriate range.
+
+All the functions are complete.
+
+Key components analyze:
+L-Systems: readLSYSFile() is used to read data from text files. An LSYS struct is defined to store crucial information. processLsystem() is used to do the iteration and finally generate the correct turtle strings by applying the rewriting rules.
+
+The PolyCylinder: readPlyFile() is used for reading all plyFiles. It will specially store sphere points and cylinder points. For others, data is stored in publicly shared arrays. As the length of each LSYS file is just one. scaleC() and scaleS() is used to reduce the volume of sphere and cylinder to an appropriate size. drawTree() is the function to apply the L-System rule and utilize the sphere and cylinder. According to the index it was given, it apples the rule of the certain tree. Each time, an appropriate random color and position is picked.
+
+drawGound(): generate an two dimensional array of points and then draw it. 45 angle rotated around axis Y for a sense of beauty.
+
+drawCar(): a car ply is read and draw.
+drawLamp(): a lamp ply is read and draw.
+drawBeethoven(): a Beethoven is read and draw.
