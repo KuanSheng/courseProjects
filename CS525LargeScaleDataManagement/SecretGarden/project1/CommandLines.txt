@@ -1,0 +1,53 @@
+Command line:
+Virtual machine resolution setting: System settings -> Displays
+ 
+cd Workspace
+//remember to put all your *.java files in this directory
+ 
+javac Generator.java
+java Generator
+ 
+hadoop dfs -mkdir /user/jhe/project1
+hadoop dfs -put MyPage Friends AccessLog /user/jhe/project1
+ 
+mkdir project1
+mkdir project1/taskA
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskA TaskA.java
+jar -cvf ./taskA.jar -C project1/taskA/ .
+hadoop jar taskA.jar edu.wpi.cs525.TaskA /user/jhe/project1/MyPage /user/jhe/project1/output1
+ 
+mkdir project1/taskB
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskB/ TaskB.java 
+jar -cvf ./taskB.jar -C project1/taskB/ .
+hadoop jar taskB.jar edu.wpi.cs525.TaskB /user/jhe/project1/MyPage /user/jhe/project1/output2
+ 
+mkdir project1/taskC
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskC/ TaskC.java 
+jar -cvf ./taskC.jar -C project1/taskC/ .
+hadoop jar taskC.jar edu.wpi.cs525.TaskC /user/jhe/project1/AccessLog /user/jhe/project1/outputTemp1 /user/jhe/project1/output4
+ 
+mkdir project1/taskD
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskD/ TaskD.java 
+jar -cvf ./taskD.jar -C project1/taskD/ .
+hadoop jar taskD.jar edu.wpi.cs525.TaskD /user/jhe/project1/Friends /user/jhe/project1/outputTemp6 /user/jhe/project1/MyPage /user/jhe/project1/output9
+ 
+mkdir project1/taskE
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskE/ TaskE.java 
+jar -cvf ./taskE.jar -C project1/taskE/ .
+hadoop jar taskE.jar edu.wpi.cs525.TaskE /user/jhe/project1/AccessLog /user/jhe/project1/output5
+ 
+ 
+mkdir project1/taskF
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskF/ TaskF.java 
+jar -cvf ./taskF.jar -C project1/taskF/ .
+hadoop jar taskF.jar edu.wpi.cs525.TaskF /user/jhe/project1/Friends /user/jhe/project1/AccessLog /user/jhe/project1/output6
+ 
+mkdir project1/taskG
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskG/ TaskG.java 
+jar -cvf ./taskG.jar -C project1/taskG/ .
+hadoop jar taskG.jar edu.wpi.cs525.TaskG /user/jhe/project1/AccessLog /user/jhe/project1/output7
+ 
+mkdir project1/taskH
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project1/taskH/ TaskH.java 
+jar -cvf ./taskH.jar -C project1/taskH/ .
+hadoop jar taskH.jar edu.wpi.cs525.TaskH /user/jhe/project1/Friends /user/jhe/project1/output10
