@@ -1,0 +1,3 @@
+javac Generator.java
+java Generator 5 10000 10 100           --> 62kB
+java Generator 10 15000000 300 10000    --> 148.5MB
