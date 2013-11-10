@@ -12,7 +12,7 @@ import org.apache.hadoop.util.*;
 import org.apache.hadoop.filecache.DistributedCache;
 
 
-public class Kmean {
+public class Kmeans {
 	// The Map task
 	public static ArrayList<Integer> centroidsX = new ArrayList<Integer>();
     public static ArrayList<Integer> centroidsY = new ArrayList<Integer>();
@@ -26,29 +26,29 @@ public class Kmean {
 		
 		// Read the cache file into hashMap
 		public void configure(JobConf job) {
-		try{
-			smallFiles = DistributedCache.getLocalCacheFiles(job);
+            try{
+                smallFiles = DistributedCache.getLocalCacheFiles(job);
 			} catch (IOException ioe) {
         		System.err.println("Caught exception while getting cached files: "+StringUtils.stringifyException(ioe));
         	}
         	
-        for(Path smallFile: smallFiles){
-            try{
-                BufferedReader fis = new BufferedReader(new FileReader(smallFile.toString()));
-				String line_data = null;
-                while ((line_data = fis.readLine()) != null) {
-                	String point = line_data.split("\t")[0];
-                    String[] centroidPoint = point.split(",");
-                    int x = Integer.parseInt(centroidPoint[0]);
-                    int y = Integer.parseInt(centroidPoint[1]);
-                    centroidsX.add(x);
-                    centroidsY.add(y);
+            for(Path smallFile: smallFiles){
+                try{
+                    BufferedReader fis = new BufferedReader(new FileReader(smallFile.toString()));
+                    String line_data = null;
+                    while ((line_data = fis.readLine()) != null) {
+                        String point = line_data.split("\t")[0];
+                        String[] centroidPoint = point.split(",");
+                        int x = Integer.parseInt(centroidPoint[0]);
+                        int y = Integer.parseInt(centroidPoint[1]);
+                        centroidsX.add(x);
+                        centroidsY.add(y);
                     }
                 } catch (IOException ioe) {
-                	System.err.println("Caught exception while parsing the cached file '" + smallFile + "' : " + StringUtils.stringifyException(ioe));
+                    System.err.println("Caught exception while parsing the cached file '" + smallFile + "' : " + StringUtils.stringifyException(ioe));
                 }
             }
-		}
+        }
         
 		// Mapper
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException{
@@ -134,37 +134,31 @@ public class Kmean {
 			new_centroid = new_centroidX + "," + new_centroidY;
 			
 			if (org_centroid.equals(new_centroid)){
-				output.collect(new Text(new_centroid), new Text("--"));
+				output.collect(new Text(new_centroid), new Text(""));
 			}
 			else{
-				output.collect(new Text(new_centroid), new Text("^^"));
+				output.collect(new Text(new_centroid), new Text("*"));
 			}
 			
 	    }
 	}
 
-	public static int verify_renew(String local_merged_file_name)
-	{
+	public static boolean checkCondition(String fileName){
 		BufferedReader br = null;
-
 		try {
- 
 			String sCurrentLine;
- 
-			br = new BufferedReader(new FileReader(local_merged_file_name));
- 
+			br = new BufferedReader(new FileReader(fileName));
 			while ((sCurrentLine = br.readLine()) != null) {
-				if (sCurrentLine.contains("^^"))
-				{
+				if (sCurrentLine.contains("*")){
 					try {
-						if (br != null)br.close();
+						if (br != null)
+                            br.close();
 					} catch (IOException ex) {
 						ex.printStackTrace();
 					}
-					return 1;
+					return false;
 				}
 			}
- 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -175,77 +169,54 @@ public class Kmean {
 			ex.printStackTrace();
 		}
 
-		return 0;
+		return true;
 	}
     
     public static void main(String[] args) throws Exception 
     {
-
-    	int max_count = 6;
+    	int max_count = Integer.parseInt(args[3]);
+        int center    = Integer.parseInt(args[4]);
     	int counter = 0;
 
-    	Path point_path = new Path(args[1]);
-    	Path last_output_path = new Path("/");
+        Path cachePath = new Path(args[0]);
+    	Path inputPath = new Path(args[1]);
+        Path outputPath = new Path(args[2]);
 
-    	Process p;
+    	Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(conf);
 
     	while (counter < max_count)
     	{
+            Configuration conf = getConf();
+            FileSystem fs = FileSystem.get(conf);
+    		Job job = new Job(conf);
+            job.setJarByClass(KMeans.class);
+            
+            fs.delete(cachePath, true);
 
-    		String output_path_str = args[2]+"_"+String.valueOf(counter);
-    		String output_single_file_path = output_path_str + "/merged_seeds";
-    		String local_merged_file_name = "~/Workspace/test/kmean_merged_file"+"_"+String.valueOf(counter);
-    		Path output_path = new Path(output_path_str);
+    		job.setOutputKeyClass(Text.class);
+    		job.setOutputValueClass(Text.class);
 
-    		JobConf conf = new JobConf(Kmean.class);
-    		conf.setJobName("cs525_proj4_Kmean_"+String.valueOf(counter));
+    		job.setMapperClass(Map.class);
+            job.setCombinerClass(Combine.class);
+    		job.setReducerClass(Reduce.class);
+    		job.setNumReduceTasks(1);
 
-    		conf.setOutputKeyClass(Text.class);
-    		conf.setOutputValueClass(Text.class);
-
-    		conf.setMapperClass(Map.class);
-    		//conf.setNumReduceTasks(0);
-    		conf.setCombinerClass(Combine.class);
-    		conf.setReducerClass(Reduce.class);
-
-    		conf.setInputFormat(TextInputFormat.class);
-    		conf.setOutputFormat(TextOutputFormat.class);
-
-    		if (counter == 0)
-    		{
-    			DistributedCache.addCacheFile(new Path(args[0]).toUri(), conf);
-    		}
-    		else
-    		{
-    			DistributedCache.addCacheFile(last_output_path.toUri(), conf);
-    		}
-
-    		FileInputFormat.setInputPaths(conf, point_path);
-    		FileOutputFormat.setOutputPath(conf, output_path);
-
-    		JobClient.runJob(conf);
-
-    		// remove the existed temp file
-    		p = Runtime.getRuntime().exec("rm " + local_merged_file_name);
-    		p.waitFor();
-
-    		// put the result of current map/reduce on a SINGLE local temp file
-    		p = Runtime.getRuntime().exec("hadoop fs -getmerge " + output_path_str + " " + local_merged_file_name);
-    		p.waitFor();
-
-    		// put the local temp file back to HDFS, so that next map/reduce can use it as input
-    		p = Runtime.getRuntime().exec("hadoop fs -put " + local_merged_file_name + " " + output_single_file_path);
-    		p.waitFor();
-
-    		last_output_path = new Path(output_single_file_path);
+    		job.setInputFormat(TextInputFormat.class);
+    		job.setOutputFormat(TextOutputFormat.class);
+            
+    		DistributedCache.addCacheFile(cachePath.toUri(), job);
+    		
+    		FileInputFormat.setInputPaths(job, inputPath);
+    		FileOutputFormat.setOutputPath(job, outputPath);
+            
+    		JobClient.runJob(job);
 
     		counter ++;
 
-    		if (Kmean.verify_renew(local_merged_file_name) == 0)
-    		{
+    		if (Kmeans.checkCondition(local_merged_file_name)){
     			break;
     		}
-
     	}
 	}
 
