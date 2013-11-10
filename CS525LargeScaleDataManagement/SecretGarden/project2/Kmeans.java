@@ -176,11 +176,12 @@ public class Kmeans {
     {
     	int max_count = Integer.parseInt(args[3]);
         int center    = Integer.parseInt(args[4]);
-    	int counter = 0;
+    	int counter   = 0;
 
         Path cachePath = new Path(args[0]);
     	Path inputPath = new Path(args[1]);
         Path outputPath = new Path(args[2]);
+        Path outputFile = new Path(args[2]+"/part-r-00000");
 
     	Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
@@ -193,6 +194,7 @@ public class Kmeans {
             job.setJarByClass(KMeans.class);
             
             fs.delete(cachePath, true);
+            fs.rename(outputFile, cachePath);
 
     		job.setOutputKeyClass(Text.class);
     		job.setOutputValueClass(Text.class);
@@ -211,10 +213,12 @@ public class Kmeans {
     		FileOutputFormat.setOutputPath(job, outputPath);
             
     		JobClient.runJob(job);
-
+            job.waitForCompletion(true);
+            
     		counter ++;
+            
 
-    		if (Kmeans.checkCondition(local_merged_file_name)){
+    		if (Kmeans.checkCondition(outputFile)){
     			break;
     		}
     	}
