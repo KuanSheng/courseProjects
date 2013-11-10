@@ -5,6 +5,7 @@ import java.util.*;
 import java.lang.Math;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
@@ -129,8 +130,8 @@ public class Kmeans {
 				
 			}
 			
-            int new_centroidX = Math.round( (x_sum + 0.0) / n_sum);
-            int new_centroidY = Math.round( (y_sum + 0.0) / n_sum);
+            int new_centroidX = (int) (Math.round( (x_sum + 0.0) / n_sum));
+            int new_centroidY = (int) (Math.round( (y_sum + 0.0) / n_sum));
 			new_centroid = new_centroidX + "," + new_centroidY;
 			
 			if (org_centroid.equals(new_centroid)){
@@ -181,18 +182,16 @@ public class Kmeans {
         Path cachePath = new Path(args[0]);
     	Path inputPath = new Path(args[1]);
         Path outputPath = new Path(args[2]);
-        Path outputFile = new Path(args[2]+"/part-r-00000");
-
-    	Configuration conf = new Configuration();
-        FileSystem fs = FileSystem.get(conf);
+        String outputFileName = args[2]+"/part-r-00000";
+        Path outputFile = new Path(outputFileName);
 
     	while (counter < max_count)
     	{
-            Configuration conf = getConf();
+    	    JobConf job = new JobConf(Kmeans.class);
+            job.setJobName("Kmeans"+counter);
+
+            Configuration conf = new Configuration();
             FileSystem fs = FileSystem.get(conf);
-    		Job job = new Job(conf);
-            job.setJarByClass(KMeans.class);
-            
             fs.delete(cachePath, true);
             fs.rename(outputFile, cachePath);
 
@@ -213,12 +212,10 @@ public class Kmeans {
     		FileOutputFormat.setOutputPath(job, outputPath);
             
     		JobClient.runJob(job);
-            job.waitForCompletion(true);
             
     		counter ++;
             
-
-    		if (Kmeans.checkCondition(outputFile)){
+    		if (Kmeans.checkCondition(outputFileName)){
     			break;
     		}
     	}
