@@ -28,19 +28,20 @@ public class Generator {
 	    System.out.println("Generating dataset...");
         
         boolean isLarger = false;
+        double flag=0.0;
         
 	    for(int id = 0; id < rowNumber; id ++){
             int index = (int) (Math.random()*centerNumber);
-            double flag = Math.random();
-            flag = flag>=0.5?true:false;
-            if(flag)
+            flag = Math.random();
+            isLarger = flag>=0.5?true:false;
+            if(isLarger)
                 str.append(x[index]+(int)(Math.random()*(radius+1)));
             else
                 str.append(x[index]+(int)(Math.random()*(radius+1)));
             str.append(',');
-            double flag = Math.random();
-            flag = flag>=0.5?true:false;
-            if(flag)
+            flag = Math.random();
+            isLarger = flag>=0.5?true:false;
+            if(isLarger)
                 str.append(y[index]+(int)(Math.random()*(radius+1)));
             else
                 str.append(y[index]+(int)(Math.random()*(radius+1)));
