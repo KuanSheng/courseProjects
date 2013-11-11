@@ -12,6 +12,10 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.*;
 import org.apache.hadoop.filecache.DistributedCache;
 
+/*
+ @author: Jiefeng He
+ email: jiefenghaspower@gmail.com
+ */
 
 public class Kmeans {
 	// The Map task
@@ -142,7 +146,7 @@ public class Kmeans {
 	    }
 	}
 
-	public static boolean checkCondition(String fileName){
+	public static boolean checkBreakCondition(String fileName){
 		BufferedReader br = null;
 		try {
 			String sCurrentLine;
@@ -174,7 +178,7 @@ public class Kmeans {
     public static void main(String[] args) throws Exception 
     {
     	int max_count = Integer.parseInt(args[3]);
-        int center    = Integer.parseInt(args[4]);
+        int centerNumb    = Integer.parseInt(args[4]);
         int range     = Integer.parseInt(args[5]);
     	int counter   = 0;
 
@@ -187,6 +191,8 @@ public class Kmeans {
         String crcFileName = "."+localFileName+".crc";
         Path localFile = new Path(localFileName);
         
+        //delete the crc file to avoid checksum error
+        //caused by copyFromLocalFile and copyToLocalFile
         File crcFile = new File(crcFileName);
         crcFile.delete();
         
@@ -196,14 +202,30 @@ public class Kmeans {
         /* the number of center won't change, because at least one node will be attached to the center
         /*
         PrintWriter kCenters = new PrintWriter(localFileName);
-        int radius = (int) (range*1.0/center);
-        for(int i=0; i<center; i++){
+        int radius = (int) (range*1.0/centerNumb);
+        for(int i=0; i<centerNumb; i++){
             int x = (int) (radius*(i+0.5));
             int y = (int) (radius*(i+0.5));
             kCenters.println(x+","+y);
         }
         kCenters.close();
         */
+        
+        //Just get the first centerNumb of points from Dataset to be the initialized centroids
+        String dataset = "Dataset";
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(dataset));
+			PrintWriter kCenters = new PrintWriter(localFileName);
+			String line = null;
+			int i = 0;
+			while ((line = br.readLine()) != null && i++ < centerNumb) {
+				kCenters.println(line);
+			}
+			br.close();
+			kCenters.close();
+		} catch (Exception e) {
+			System.err.println("Caught exception while reading Dataset file: " + e.toString());
+		}
 
 
     	while (counter < max_count)
@@ -238,7 +260,7 @@ public class Kmeans {
             
     		counter ++;
             
-    		if (Kmeans.checkCondition(localFileName)){
+    		if(Kmeans.checkBreakCondition(localFileName)){
     			break;
     		}
     	}
