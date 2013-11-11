@@ -182,7 +182,7 @@ public class Kmeans {
         Path cachePath = new Path(args[0]);
     	Path inputPath = new Path(args[1]);
         Path outputPath = new Path(args[2]);
-        String outputFileName = args[2]+"/part-r-00000";
+        String outputFileName = args[2]+"/part-00000";
         Path outputFile = new Path(outputFileName);
 
     	while (counter < max_count)
@@ -190,9 +190,9 @@ public class Kmeans {
     	    JobConf job = new JobConf(Kmeans.class);
             job.setJobName("Kmeans"+counter);
 
+	     Configuration conf = new Configuration();
+             FileSystem fs = FileSystem.get(conf);
             if(counter!=0){
-		    Configuration conf = new Configuration();
-		    FileSystem fs = FileSystem.get(conf);
 		    fs.delete(cachePath, true);
 		    fs.rename(outputFile, cachePath);
             }
