@@ -189,6 +189,9 @@ public class Kmeans {
         String crcFileName = "."+localFileName+".crc";
         Path localFile = new Path(localFileName);
         
+        File crcFile = new File(crcFileName);
+        crcFile.delete();
+        
         PrintWriter kCenters = new PrintWriter(localFileName);
         for(int i=0; i<center; i++){
             int x = (int) (Math.random()*(range+1));
