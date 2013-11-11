@@ -15,8 +15,6 @@ hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/
 hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n
 
 //for task 3
-// Not finished yet . . . 
-// maybe I am stupid, but for me the workload of task 3 is the same as 2
 
 //convert data into numeric feature vectors
 //files needed: dict1, freq1  —> produced by mahout; and tokens.txt
@@ -35,3 +33,13 @@ hadoop jar task3.jar edu.wpi.cs525.KmeansForTweets /user/jhe/project2/KCenters /
 
 //for latest files you can always find them here
 https://github.com/jiefenghaspower/courseProjects/tree/master/CS525LargeScaleDataManagement/SecretGarden/project2
+
+/* some ideas here, but it does not work
+javac -d project2 Generator.java
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2 Kmeans.java
+javac -d project2 ConvertDataToNFV.java
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2 KmeansForTweets.java
+javac -d project2 ConvertDataToNFV.java
+javac -d project2 NumericFeatureVector.java
+jar -cvf ./task3.jar -C project2/task3/ .
+*/
