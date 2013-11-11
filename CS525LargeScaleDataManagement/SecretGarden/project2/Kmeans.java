@@ -38,7 +38,7 @@ public class Kmeans {
                     BufferedReader fis = new BufferedReader(new FileReader(smallFile.toString()));
                     String line_data = null;
                     while ((line_data = fis.readLine()) != null) {
-                        String point = line_data.split("\t")[0];
+                        String point = line_data.trim();
                         String[] centroidPoint = point.split(",");
                         int x = Integer.parseInt(centroidPoint[0]);
                         int y = Integer.parseInt(centroidPoint[1]);
@@ -138,7 +138,7 @@ public class Kmeans {
 				output.collect(new Text(new_centroid), new Text(""));
 			}
 			else{
-				output.collect(new Text(new_centroid), new Text("*"));
+				output.collect(new Text(new_centroid+",*"), new Text(""));
 			}
 			
 	    }
