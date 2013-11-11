@@ -10,7 +10,7 @@ public class Generator {
 	public static void main(String[] args) throws FileNotFoundException {
 	    StringBuilder str = new StringBuilder();
 	    PrintWriter dataset = new PrintWriter("Dataset");
-        PrintWriter datasetCenters = new PrintWriter("DatasetCenters”);
+        PrintWriter datasetCenters = new PrintWriter("DatasetCenters");
         
         //initialize
 	    int centerNumber = Integer.parseInt(args[0]);
