@@ -4,6 +4,9 @@ java Generator 10 15000000 300 10000    --> 148.5MB
 start-all.sh
 hadoop dfs -mkdir /user/jhe/project2
 hadoop dfs -put Dataset /user/jhe/project2
+hadoop dfs -put KCenters /user/jhe/project2
 mkdir project2
 mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
+jar -cvf ./task2.jar -C project2/task2/ .
+hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 1 5

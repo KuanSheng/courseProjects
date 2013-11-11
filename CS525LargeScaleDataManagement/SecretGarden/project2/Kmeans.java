@@ -190,10 +190,12 @@ public class Kmeans {
     	    JobConf job = new JobConf(Kmeans.class);
             job.setJobName("Kmeans"+counter);
 
-            Configuration conf = new Configuration();
-            FileSystem fs = FileSystem.get(conf);
-            fs.delete(cachePath, true);
-            fs.rename(outputFile, cachePath);
+            if(counter!=0){
+		    Configuration conf = new Configuration();
+		    FileSystem fs = FileSystem.get(conf);
+		    fs.delete(cachePath, true);
+		    fs.rename(outputFile, cachePath);
+            }
 
     		job.setOutputKeyClass(Text.class);
     		job.setOutputValueClass(Text.class);
