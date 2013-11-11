@@ -195,6 +195,7 @@ public class Kmeans {
 	        Configuration conf = new Configuration();
             FileSystem fs = FileSystem.get(conf);
             fs.delete(cachePath, true);
+            fs.delete(outputPath, true);
             fs.copyFromLocalFile(localFile, cachePath);
 
     		job.setOutputKeyClass(Text.class);
