@@ -179,8 +179,7 @@ public class Kmeans {
     {
     	int max_count = Integer.parseInt(args[3]);
         int centerNumb    = Integer.parseInt(args[4]);
-        int range     = Integer.parseInt(args[5]);
-        boolean onlyClusterCenter = args[6].toLowerCase().contains("y");
+        boolean onlyClusterCenter = args[5].toLowerCase().contains("y");
     	int counter   = 0;
 
         Path cachePath = new Path(args[0]);

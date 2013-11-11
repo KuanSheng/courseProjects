@@ -1,11 +1,10 @@
 javac Generator.java
-java Generator 5 10000 10 100           --> 62kB  Not Good
-java Generator 10 100000 1000 10000     --> 1.0MB
+java Generator 5 10000 10 100           --> 62kB   ClusterCenter RowNumber Radius Range
+java Generator 10 100000 100 10000     --> 1.0MB
 java Generator 10 15000000 300 10000    --> 148.5MB
 start-all.sh
 hadoop dfs -mkdir /user/jhe/project2
 hadoop dfs -put Dataset /user/jhe/project2
-hadoop dfs -put KCenters /user/jhe/project2
 mkdir project2
 mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
