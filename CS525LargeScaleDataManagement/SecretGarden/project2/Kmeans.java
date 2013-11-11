@@ -177,6 +177,7 @@ public class Kmeans {
     {
     	int max_count = Integer.parseInt(args[3]);
         int center    = Integer.parseInt(args[4]);
+        int range     = Integer.parseInt(args[5]);
     	int counter   = 0;
 
         Path cachePath = new Path(args[0]);
@@ -186,6 +187,14 @@ public class Kmeans {
         Path outputFile = new Path(outputFileName);
         String localFileName = "KCenters";
         Path localFile = new Path(localFileName);
+        
+        PrintWriter kCenters = new PrintWriter(localFileName);
+        for(int i=0; i<center; i++){
+            int x = (int) (Math.random()*(range+1));
+            int y = (int) (Math.random()*(range+1));
+            kCenters.println(x+","+y);
+        }
+        kCenters.close();
 
     	while (counter < max_count)
     	{
