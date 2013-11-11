@@ -77,7 +77,7 @@ public class Kmeans {
 		
             String min_dis_centroid = xMin + "," + yMin;
             outputKey.set(min_dis_centroid);
-            outputValue.set(point+","+centroidsX.size());
+            outputValue.set(point);
             output.collect(outputKey, outputValue);
         }
     }
@@ -88,7 +88,6 @@ public class Kmeans {
 	    	int n = 0;
 			long x_sum = 0;
 			long y_sum = 0;
-                int size = 0;
 
 	    	while (values.hasNext()) {
 				String point = values.next().toString();
@@ -96,14 +95,13 @@ public class Kmeans {
 
 	    		int x = Integer.parseInt(data[0]);
 				int y = Integer.parseInt(data[1]);
-                        size = Integer.parseInt(data[2]);
 				
 				x_sum += (long)x;
 				y_sum += (long)y;
 				
 				n += 1;
 	    	}
-	        output.collect(key, new Text(x_sum + "," + y_sum + "," + n + "," + size));
+	        output.collect(key, new Text(x_sum + "," + y_sum + "," + n));
 	    }
 	}
 
@@ -115,9 +113,7 @@ public class Kmeans {
 			long y_sum = 0;
 			String new_centroid;
 			String org_centroid = key.toString();
-                        int size=0;
 
-			//Set<String> customers = new HashSet<String>();
 			while (values.hasNext()) {
 				String point = values.next().toString();
 				String[] data = point.split(",");
@@ -125,7 +121,6 @@ public class Kmeans {
 				Long x = Long.parseLong(data[0]);
 				Long y = Long.parseLong(data[1]);
 				int n = Integer.parseInt(data[2]);
-                                size = Integer.parseInt(data[3]);				
 
 				x_sum += x;
 				y_sum += y;
@@ -139,12 +134,11 @@ public class Kmeans {
 			new_centroid = new_centroidX + "," + new_centroidY;
 			
 			if (org_centroid.equals(new_centroid)){
-				output.collect(new Text(new_centroid+","+size), new Text(""));
+				output.collect(new Text(new_centroid), new Text(""));
 			}
 			else{
-				output.collect(new Text(new_centroid+","+size+",*"), new Text(""));
+				output.collect(new Text(new_centroid+",*"), new Text(""));
 			}
-			
 	    }
 	}
 
@@ -196,7 +190,11 @@ public class Kmeans {
         File crcFile = new File(crcFileName);
         crcFile.delete();
         
-
+        /*
+        /* This part is not good, I should not randomly choose point from the space, it may leads to
+        /* centroid lost. I should randomly choose from the existed dataset so that I can make sure 
+        /* the number of center won't change, because at least one node will be attached to the center
+        /*
         PrintWriter kCenters = new PrintWriter(localFileName);
         int radius = (int) (range*1.0/center);
         for(int i=0; i<center; i++){
@@ -205,7 +203,7 @@ public class Kmeans {
             kCenters.println(x+","+y);
         }
         kCenters.close();
-        kCenters=null;
+        */
 
 
     	while (counter < max_count)
