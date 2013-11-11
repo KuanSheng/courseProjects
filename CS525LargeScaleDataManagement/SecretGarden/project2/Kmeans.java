@@ -180,6 +180,7 @@ public class Kmeans {
     	int max_count = Integer.parseInt(args[3]);
         int centerNumb    = Integer.parseInt(args[4]);
         int range     = Integer.parseInt(args[5]);
+        boolean onlyClusterCenter = args[6].toLowerCase().contains("y");
     	int counter   = 0;
 
         Path cachePath = new Path(args[0]);
@@ -264,6 +265,34 @@ public class Kmeans {
     			break;
     		}
     	}
+        
+        if(!onlyClusterCenter){
+            JobConf job = new JobConf(Kmeans.class);
+            job.setJobName("Kmeans"+counter);
+            
+            Configuration conf = new Configuration();
+            FileSystem fs = FileSystem.get(conf);
+            fs.delete(cachePath, false);
+            fs.delete(outputPath, true);
+            fs.copyFromLocalFile(localFile, cachePath);
+            
+            job.setOutputKeyClass(Text.class);
+    		job.setOutputValueClass(Text.class);
+            
+    		job.setMapperClass(Map.class);
+    		job.setNumReduceTasks(0);
+            
+    		job.setInputFormat(TextInputFormat.class);
+    		job.setOutputFormat(TextOutputFormat.class);
+            
+    		DistributedCache.addCacheFile(cachePath.toUri(), job);
+    		
+    		FileInputFormat.setInputPaths(job, inputPath);
+    		FileOutputFormat.setOutputPath(job, outputPath);
+            
+    		JobClient.runJob(job);
+        }
+        
 	}
 
 }
