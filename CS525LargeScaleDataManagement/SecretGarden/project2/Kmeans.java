@@ -60,7 +60,7 @@ public class Kmeans {
             int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
 
             int x = Integer.parseInt(data[0]);
-            float y = Integer.parseInt(data[1]);
+            int y = Integer.parseInt(data[1]);
 		
             for (int i = 0; i < centroidsX.size(); i++){
                 int xC = centroidsX.get(i);
@@ -77,7 +77,7 @@ public class Kmeans {
 		
             String min_dis_centroid = xMin + "," + yMin;
             outputKey.set(min_dis_centroid);
-            outputValue.set(point);
+            outputValue.set(point+","+centroidsX.size());
             output.collect(outputKey, outputValue);
         }
     }
@@ -88,20 +88,22 @@ public class Kmeans {
 	    	int n = 0;
 			long x_sum = 0;
 			long y_sum = 0;
+                int size = 0;
 
 	    	while (values.hasNext()) {
 				String point = values.next().toString();
         	    String[] data = point.split(",");
 
-	    		Integer x = Integer.parseInt(data[0]);
-				Integer y = Integer.parseInt(data[1]);
+	    		int x = Integer.parseInt(data[0]);
+				int y = Integer.parseInt(data[1]);
+                        size = Integer.parseInt(data[2]);
 				
 				x_sum += (long)x;
 				y_sum += (long)y;
 				
 				n += 1;
 	    	}
-	        output.collect(key, new Text(x_sum + "," + y_sum + "," + n));
+	        output.collect(key, new Text(x_sum + "," + y_sum + "," + n + "," + size));
 	    }
 	}
 
@@ -113,8 +115,9 @@ public class Kmeans {
 			long y_sum = 0;
 			String new_centroid;
 			String org_centroid = key.toString();
+                        int size=0;
 
-			Set<String> customers = new HashSet<String>();
+			//Set<String> customers = new HashSet<String>();
 			while (values.hasNext()) {
 				String point = values.next().toString();
 				String[] data = point.split(",");
@@ -122,7 +125,8 @@ public class Kmeans {
 				Long x = Long.parseLong(data[0]);
 				Long y = Long.parseLong(data[1]);
 				int n = Integer.parseInt(data[2]);
-				
+                                size = Integer.parseInt(data[3]);				
+
 				x_sum += x;
 				y_sum += y;
 				
@@ -135,10 +139,10 @@ public class Kmeans {
 			new_centroid = new_centroidX + "," + new_centroidY;
 			
 			if (org_centroid.equals(new_centroid)){
-				output.collect(new Text(new_centroid), new Text(""));
+				output.collect(new Text(new_centroid+","+size), new Text(""));
 			}
 			else{
-				output.collect(new Text(new_centroid+",*"), new Text(""));
+				output.collect(new Text(new_centroid+","+size+",*"), new Text(""));
 			}
 			
 	    }
@@ -192,14 +196,17 @@ public class Kmeans {
         File crcFile = new File(crcFileName);
         crcFile.delete();
         
+
         PrintWriter kCenters = new PrintWriter(localFileName);
+        int radius = (int) (range*1.0/center);
         for(int i=0; i<center; i++){
-            int x = (int) (Math.random()*(range+1));
-            int y = (int) (Math.random()*(range+1));
+            int x = (int) (radius*(i+0.5));
+            int y = (int) (radius*(i+0.5));
             kCenters.println(x+","+y);
         }
         kCenters.close();
         kCenters=null;
+
 
     	while (counter < max_count)
     	{
