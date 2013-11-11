@@ -1,26 +1,28 @@
 for task 2
 // remember to put all your files such as Generator.java, Kmeans.java in the same directory
-javac Generator.java
-java Generator 5 10000 10 100           --> 62kB   [ClusterCenter RowNumber Radius Range]
-java Generator 10 100000 100 10000     --> 1.0MB
-java Generator 10 15000000 300 10000    --> 148.5MB
 start-all.sh                            —-> start hadoop
-hadoop dfs -mkdir /user/jhe/project2
+javac Generator.java
+//java Generator 5 10000 10 100           --> 62kB   [ClusterCenter RowNumber Radius Range]
+java Generator 10 100000 100 10000     --> 1.0MB use this small one
+//java Generator 10 15000000 300 10000    --> 148.5MB
+hadoop dfs -mkdir /user/jhe/project2          --> create dirctory in hadoop dfs if not yet
+hadoop dfs -rmr /user/jhe/project2/Dataset         --> make sure there's no previous data which will leads to error
 hadoop dfs -put Dataset /user/jhe/project2
-mkdir project2
+mkdir project2                                   --> create a local directory
 mkdir project2/task2
-javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
-jar -cvf ./task2.jar -C project2/task2/ .
-hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
-hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java      --> compile
+jar -cvf ./task2.jar -C project2/task2/ .                                     --> make jar file
+hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y     --> run
+hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n     --> run
 
 //for task 3
-
 //convert data into numeric feature vectors
 //files needed: dict1, freq1  —> produced by mahout; and tokens.txt
 first manually delete the unnecissary header of dict1 and freq1 (about two lines each)
 javac ConvertDataToNFV.java
 java ConvertDataToNFV
+hadoop dfs -rmr /user/jhe/project2/NumbericFeatureVectors
+hadoop dfs -put NumbericFeatureVectors /user/jhe/project2
 
 //make sure this direcory exists if your skip taks 2
 mkdir project2
@@ -39,7 +41,36 @@ javac -d project2 Generator.java
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2 Kmeans.java
 javac -d project2 ConvertDataToNFV.java
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2 KmeansForTweets.java
-javac -d project2 ConvertDataToNFV.java
 javac -d project2 NumericFeatureVector.java
-jar -cvf ./task3.jar -C project2/task3/ .
+javac -d porject2 SumUp.java
+jar -cvf ./project2.jar -C project2/ .
 */
+
+In sum:
+start-all.sh
+
+//data prepration
+javac Generator.java
+java Generator 10 100000 100 10000
+hadoop dfs -mkdir /user/jhe/project2
+hadoop dfs -rmr /user/jhe/project2/Dataset
+hadoop dfs -put Dataset /user/jhe/project2
+javac ConvertDataToNFV.java
+java ConvertDataToNFV
+hadoop dfs -rmr /user/jhe/project2/NumbericFeatureVectors
+hadoop dfs -put NumbericFeatureVectors /user/jhe/project2
+javac SumUp.java      //or javac -cp "." SumUp.java
+
+//making the jar
+mkdir project2
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2 Kmeans.java
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar NumericFeatureVector.java -d project2 KmeansForTweets.java 
+jar -cvf ./project2.jar -C project2/ .
+
+//running the job
+hadoop jar project2.jar Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
+hadoop jar project2.jar Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n
+hadoop jar project2.jar KmeansForTweets /user/jhe/project2/KCenters /user/jhe/project2/NumbericFeatureVectors /user/jhe/project2/output 50 3 y
+
+//analyze of data
+java SumUp 0.0001  //this is 0.0001 is any threshold you wanna choose

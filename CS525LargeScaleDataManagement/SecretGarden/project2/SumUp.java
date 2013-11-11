@@ -56,7 +56,8 @@ public class SumUp {
                 NumericFeatureVector nfv = new NumericFeatureVector(data[0]);
                 String meaningfulNFV = nfv.toMeaningfulString(dictReverseHash);
                 kcm.println(meaningfulNFV);
-                String extraction = nfv.extractFrequentKeys(0.005);
+                double threshold = Double.parseDouble(args[0]);
+                String extraction = nfv.extractFrequentKeys(threshold);
                 i++;
                 cs.println("Cluster" + i + ": "+extraction);
                 cs.println();

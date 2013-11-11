@@ -1,5 +1,3 @@
-package edu.wpi.cs525;
-
 import java.io.*;
 import java.util.*;
 import java.lang.Math;

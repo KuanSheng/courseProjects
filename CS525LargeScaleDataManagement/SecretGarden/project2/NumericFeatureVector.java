@@ -1,5 +1,3 @@
-package edu.wpi.cs525;
-
 import java.util.HashMap;
 
 public class NumericFeatureVector {
