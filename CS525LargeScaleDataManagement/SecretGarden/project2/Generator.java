@@ -8,7 +8,11 @@ public class Generator {
 	 * @throws FileNotFoundException 
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
-	    //initialize
+	    StringBuilder str = new StringBuilder();
+	    PrintWriter dataset = new PrintWriter("Dataset");
+        PrintWriter datasetCenters = new PrintWriter("DatasetCenters”);
+        
+        //initialize
 	    int centerNumber = Integer.parseInt(args[0]);
         int rowNumber    = Integer.parseInt(args[1]);
         int radius       = Integer.parseInt(args[2]);
@@ -20,12 +24,18 @@ public class Generator {
         for(int i=0; i<centerNumber; i++){
             x[i] = (int) (Math.random()*(range+1));
             y[i] = (int) (Math.random()*(range+1));
+            str.append(x[i]);
+            str.append(',');
+            str.append(y[i]);
+            datasetCenters.println(str.toString());
+	        str.delete( 0, str.length() );
         }
-	
-	    StringBuilder str = new StringBuilder();
-	    PrintWriter dataset = new PrintWriter("Dataset");
+        datasetCenters.close();
+	    
 	
 	    System.out.println("Generating dataset...");
+        
+        
         
         boolean isLarger = false;
         double flag=0.0;
