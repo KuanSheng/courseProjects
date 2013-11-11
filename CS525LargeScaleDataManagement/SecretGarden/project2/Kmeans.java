@@ -184,18 +184,18 @@ public class Kmeans {
         Path outputPath = new Path(args[2]);
         String outputFileName = args[2]+"/part-00000";
         Path outputFile = new Path(outputFileName);
+        String localFileName = "KCenters";
+        Path localFile = new Path(localFileName);
 
     	while (counter < max_count)
     	{
     	    JobConf job = new JobConf(Kmeans.class);
             job.setJobName("Kmeans"+counter);
 
-	     Configuration conf = new Configuration();
-             FileSystem fs = FileSystem.get(conf);
-            if(counter!=0){
-		    fs.delete(cachePath, true);
-		    fs.rename(outputFile, cachePath);
-            }
+	        Configuration conf = new Configuration();
+            FileSystem fs = FileSystem.get(conf);
+            fs.delete(cachePath, true);
+            fs.copyFromLocalFile(localFile, cachePath);
 
     		job.setOutputKeyClass(Text.class);
     		job.setOutputValueClass(Text.class);
@@ -214,10 +214,11 @@ public class Kmeans {
     		FileOutputFormat.setOutputPath(job, outputPath);
             
     		JobClient.runJob(job);
+            fs.copyToLocalFile(outputFile, localFile);
             
     		counter ++;
             
-    		if (Kmeans.checkCondition(outputFileName)){
+    		if (Kmeans.checkCondition(localFileName)){
     			break;
     		}
     	}
