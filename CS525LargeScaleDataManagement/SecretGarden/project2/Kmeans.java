@@ -186,6 +186,7 @@ public class Kmeans {
         String outputFileName = args[2]+"/part-00000";
         Path outputFile = new Path(outputFileName);
         String localFileName = "KCenters";
+        String crcFileName = "."+localFileName+".crc";
         Path localFile = new Path(localFileName);
         
         PrintWriter kCenters = new PrintWriter(localFileName);
@@ -195,6 +196,7 @@ public class Kmeans {
             kCenters.println(x+","+y);
         }
         kCenters.close();
+        kCenters=null;
 
     	while (counter < max_count)
     	{
@@ -203,7 +205,7 @@ public class Kmeans {
 
 	        Configuration conf = new Configuration();
             FileSystem fs = FileSystem.get(conf);
-            fs.delete(cachePath, true);
+            fs.delete(cachePath, false);
             fs.delete(outputPath, true);
             fs.copyFromLocalFile(localFile, cachePath);
 
