@@ -19,20 +19,20 @@ import org.apache.hadoop.filecache.DistributedCache;
 
 public class KmeansForTweets{
 	// The Map task
-    private final static precision = 0.0000001;
+    private final static double precision = 0.0000001;
 	public static ArrayList<NumericFeatureVector> centroids = new ArrayList<NumericFeatureVector>();
     
     private static class NumericFeatureVector{
         HashMap<Integer, Double> hash = null;
         
         public NumericFeatureVector(String data){
-            hash = new HashMap<Integer, Integer>();
+            hash = new HashMap<Integer, Double>();
             if(data==null)
                 return;
             String[] elements = data.split(",");
             String[] temp = null;
-            for(int i=0; i<elements.size(); i++){
-                temp = elements[i].split(":");
+            for(String element: elements){
+                temp = element.split(":");
                 hash.put(Integer.parseInt(temp[0]), Double.parseDouble(temp[1]));
             }
         }
@@ -44,7 +44,7 @@ public class KmeansForTweets{
             }
             
             //merging two hash
-            for(Integer temp: hash){
+            for(Integer temp: hash.keySet()){
                 if(other.hash.containsKey(temp)){
                     hash.put(temp, hash.get(temp)+other.hash.get(temp));
                     other.hash.remove(temp);
@@ -56,7 +56,7 @@ public class KmeansForTweets{
         }
         
         public void divide(int n){
-            for(Integer temp: hash)
+            for(Integer temp: hash.keySet())
                 hash.put(temp, hash.get(temp)/n);
         }
         
@@ -200,7 +200,7 @@ public class KmeansForTweets{
 				nSum += Integer.parseInt(data[1]);
 			}
 			
-            nfv = nfv.divide(nSum);
+            nfv.divide(nSum);
 			
 			if(nfv.isStable(oldCentroid)){
 				output.collect(new Text(nfv.toString()), new Text(""));

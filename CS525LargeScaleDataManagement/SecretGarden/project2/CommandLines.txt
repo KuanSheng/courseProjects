@@ -12,6 +12,7 @@ mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
 jar -cvf ./task2.jar -C project2/task2/ .
 hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
+hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n
 
 //for task 3
 // Not finished yet . . . 
@@ -19,8 +20,18 @@ hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/
 
 //convert data into numeric feature vectors
 //files needed: dict1, freq1  —> produced by mahout; and tokens.txt
+first manually delete the unnecissary header of dict1 and freq1 (about two lines each)
 javac ConvertDataToNFV.java
 java ConvertDataToNFV
+
+//make sure this direcory exists if your skip taks 2
+mkdir project2
+mkdir project2/task3
+
+javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task3 KmeansForTweets.java
+jar -cvf ./task3.jar -C project2/task3/ .
+hadoop jar task3.jar edu.wpi.cs525.KmeansForTweets /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
+
 
 //for latest files you can always find them here
 https://github.com/jiefenghaspower/courseProjects/tree/master/CS525LargeScaleDataManagement/SecretGarden/project2
