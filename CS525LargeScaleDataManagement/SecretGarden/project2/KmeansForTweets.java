@@ -29,10 +29,10 @@ public class KmeansForTweets{
             if(data==null)
                 return;
             hash = new HashMap<Integer, Integer>();
-            String[] elements = data.split(";");
+            String[] elements = data.split(",");
             String[] temp = null;
             for(int i=0; i<elements.size(); i++){
-                temp = elements[i].split(",");
+                temp = elements[i].split(":");
                 hash.put(Integer.parseInt(temp[0]), Integer.parseInt(temp[1]));
             }
         }
