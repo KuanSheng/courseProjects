@@ -19,11 +19,10 @@ import org.apache.hadoop.filecache.DistributedCache;
 
 public class KmeansForTweets{
 	// The Map task
-	public static ArrayList<Integer> centroidsX = new ArrayList<Integer>();
-    public static ArrayList<Integer> centroidsY = new ArrayList<Integer>();
+	public static ArrayList<NumericFeatureVector> centroids = new ArrayList<NumericFeatureVector>();
     
     private static class NumericFeatureVector{
-        HashMap<Integer, Integer> hash = null;
+        HashMap<Integer, Double> hash = null;
         
         public NumericFeatureVector(String data){
             if(data==null)
@@ -33,7 +32,7 @@ public class KmeansForTweets{
             String[] temp = null;
             for(int i=0; i<elements.size(); i++){
                 temp = elements[i].split(":");
-                hash.put(Integer.parseInt(temp[0]), Integer.parseInt(temp[1]));
+                hash.put(Integer.parseInt(temp[0]), Double.parseDouble(temp[1]));
             }
         }
         
@@ -63,11 +62,11 @@ public class KmeansForTweets{
             StringBuilder str = new StringBuilder();
             for(Integer temp: hash.keySet()){
                 str.append(temp);
-                str.append(',');
+                str.append(':');
                 str.append(hash.get(temp));
-                str.append(';');
+                str.append(',');
             }
-            //delete the last redundant ';'
+            //delete the last redundant ','
             str.delete(str.length()-1, str.length());
             return str.toString();
         }
@@ -93,12 +92,9 @@ public class KmeansForTweets{
                     BufferedReader fis = new BufferedReader(new FileReader(smallFile.toString()));
                     String line_data = null;
                     while ((line_data = fis.readLine()) != null) {
-                        String point = line_data.trim();
-                        String[] centroidPoint = point.split(",");
-                        int x = Integer.parseInt(centroidPoint[0]);
-                        int y = Integer.parseInt(centroidPoint[1]);
-                        centroidsX.add(x);
-                        centroidsY.add(y);
+                        String data = line_data.trim();
+                        NumericFeatureVector nfv = new NumericFeatureVector(data);
+                        centroids.add(nfv);
                     }
                 } catch (IOException ioe) {
                     System.err.println("Caught exception while parsing the cached file '" + smallFile + "' : " + StringUtils.stringifyException(ioe));
@@ -108,31 +104,23 @@ public class KmeansForTweets{
         
 		// Mapper
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException{
-            String point = value.toString();
-            String[] data = point.split(",");
-            double min_dis = Double.MAX_VALUE;
-            double dis = 0.0;
-            int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
-
-            int x = Integer.parseInt(data[0]);
-            int y = Integer.parseInt(data[1]);
+            String data = value.toString();
+            double max = -10.0;
+            double cos = -1.0;
+            int index = 0;
 		
-            for (int i = 0; i < centroidsX.size(); i++){
-                int xC = centroidsX.get(i);
-                int yC = centroidsY.get(i);
+            NumericFeatureVector nfv = new NumericFeatureVector(data);
+            for (int i = 0; i < centroids.size(); i++){
+                cos = nfv.similarity(centroids.get(i));
 			
-                dis = Math.pow((x - xC), 2) + Math.pow((y - yC), 2);
-			
-                if (dis < min_dis){
-                    min_dis = dis;
-                    xMin = xC;
-                    yMin = yC;
+                if (cos > max){
+                    max = cos;
+                    index = i;
                 }
             }
 		
-            String min_dis_centroid = xMin + "," + yMin;
-            outputKey.set(min_dis_centroid);
-            outputValue.set(point);
+            outputKey.set(centroids.get(index).toString());
+            outputValue.set(data);
             output.collect(outputKey, outputValue);
         }
     }

@@ -10,3 +10,8 @@ mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
 jar -cvf ./task2.jar -C project2/task2/ .
 hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 1 5
+
+//convert data into numeric feature vectors
+//files needed: dict1, freq1  —> produced by mahout; tokens.txt
+javac ConvertDataToNFV.java
+java ConvertDataToNFV
