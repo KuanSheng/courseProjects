@@ -129,8 +129,10 @@ public class KmeansForTweets{
                     BufferedReader fis = new BufferedReader(new FileReader(smallFile.toString()));
                     String line_data = null;
                     while ((line_data = fis.readLine()) != null) {
-                        String data = line_data.trim();
-                        NumericFeatureVector nfv = new NumericFeatureVector(data);
+                        String pre = line_data.trim();
+                        //remove the tail &&& which is added for tagging the stable cluster center
+                        String[] data = pre.split("&&&");
+                        NumericFeatureVector nfv = new NumericFeatureVector(data[0]);
                         centroids.add(nfv);
                     }
                 } catch (IOException ioe) {
@@ -195,7 +197,7 @@ public class KmeansForTweets{
                 String data[] = dataTemp.split("###");
 				NumericFeatureVector nfvTemp = new NumericFeatureVector(data[0]);
 				nfv.add(nfvTemp);
-				nSum += Integer.parseInt(data[1]);;
+				nSum += Integer.parseInt(data[1]);
 			}
 			
             nfv = nfv.divide(nSum);
@@ -275,7 +277,7 @@ public class KmeansForTweets{
         */
         
         //Just get the first centerNumb of points from Dataset to be the initialized centroids
-        String dataset = "Dataset";
+        String dataset = "NumbericFeatureVectors";
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(dataset));
 			PrintWriter kCenters = new PrintWriter(localFileName);
