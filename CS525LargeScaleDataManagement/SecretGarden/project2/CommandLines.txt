@@ -12,8 +12,8 @@ mkdir project2                                   --> create a local directory
 mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java      --> compile
 jar -cvf ./task2.jar -C project2/task2/ .                                     --> make jar file
-hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y     --> run
-hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n     --> run
+hadoop jar task2.jar Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y     --> run
+hadoop jar task2.jar Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 n     --> run
 
 //for task 3
 //convert data into numeric feature vectors
@@ -30,7 +30,7 @@ mkdir project2/task3
 
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task3 KmeansForTweets.java
 jar -cvf ./task3.jar -C project2/task3/ .
-hadoop jar task3.jar edu.wpi.cs525.KmeansForTweets /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
+hadoop jar task3.jar KmeansForTweets /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
 
 
 //for latest files you can always find them here
