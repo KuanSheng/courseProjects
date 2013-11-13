@@ -15,6 +15,7 @@ hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/
 
 //for task 3
 // Not finished yet . . . 
+// maybe I am stupid, but for me the workload of task 3 is the same as 2
 
 //convert data into numeric feature vectors
 //files needed: dict1, freq1  —> produced by mahout; and tokens.txt
