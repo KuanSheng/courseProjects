@@ -15,7 +15,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 /*
  @author: Jiefeng He
  email: jiefenghaspower@gmail.com
- */
+*/
 
 public class KmeansForTweets{
 	// The Map task
@@ -60,7 +60,7 @@ public class KmeansForTweets{
                 hash.put(temp, hash.get(temp)/n);
         }
         
-        public double similarity(NumericFeatureVector other){
+        public double calculateSimilarity(NumericFeatureVector other){
             //calculate the cos of the two Vectors
             double ab = 0.0;
             double a = 0.0, b = 0.0;
@@ -80,6 +80,19 @@ public class KmeansForTweets{
             a = Math.sqrt(a);
             b = Math.sqrt(b);
             return ab/a/b;
+        }
+        
+        public boolean isStable(NumericFeatureVector other){
+            if(hash.size()!=other.hash.size())
+                return false;
+            for(Integer temp: hash.keySet()){
+                if(!other.hash.containsKey(temp))
+                    return false;
+                if(Math.abs(hash.get(temp)-other.hash.get(temp)) > precision)
+                    return false;
+            }
+            
+            return true;
         }
         
         public String toString(){
@@ -139,7 +152,7 @@ public class KmeansForTweets{
             //and 1 means the two vectors are the same, 0 means the two vectores are independent
             // so just need to find the largest return value of cos, which means more near to 1
             for (int i = 0; i < centroids.size(); i++){
-                cos = nfv.similarity(centroids.get(i));
+                cos = nfv.calculateSimilarity(centroids.get(i));
 			
                 if (cos > max){
                     max = cos;
@@ -166,7 +179,7 @@ public class KmeansForTweets{
                 
 				n += 1;
 	    	}
-	        output.collect(key, new Text(nfv.toString() + "#" + n));
+	        output.collect(key, new Text(nfv.toString() + "###" + n));
 	    }
 	}
 
@@ -174,13 +187,12 @@ public class KmeansForTweets{
 
 	    public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
 			int nSum = 0;
-			String newCentroid;
-			String oldCentroid = key.toString();
+			NumericFeatureVector oldCentroid = new NumericFeatureVector(key.toString());
             NumericFeatureVector nfv = new NumericFeatureVector(null);
 
 			while (values.hasNext()) {
 				String dataTemp = values.next().toString();
-                String data[] = dataTemp.split("#");
+                String data[] = dataTemp.split("###");
 				NumericFeatureVector nfvTemp = new NumericFeatureVector(data[0]);
 				nfv.add(nfvTemp);
 				nSum += Integer.parseInt(data[1]);;
@@ -188,11 +200,11 @@ public class KmeansForTweets{
 			
             nfv = nfv.divide(nSum);
 			
-			if (org_centroid.equals(new_centroid)){
-				output.collect(new Text(new_centroid), new Text(""));
+			if(nfv.isStable(oldCentroid)){
+				output.collect(new Text(nfv.toString()), new Text(""));
 			}
 			else{
-				output.collect(new Text(new_centroid+",*"), new Text(""));
+				output.collect(new Text(nfv.toString()+"&&&"), new Text(""));
 			}
 	    }
 	}
@@ -203,7 +215,7 @@ public class KmeansForTweets{
 			String sCurrentLine;
 			br = new BufferedReader(new FileReader(fileName));
 			while ((sCurrentLine = br.readLine()) != null) {
-				if (sCurrentLine.contains("*")){
+				if (sCurrentLine.contains("&&&")){
 					try {
 						if (br != null)
                             br.close();

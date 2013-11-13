@@ -1,17 +1,25 @@
+for task 2
+// remember to put all your files such as Generator.java, Kmeans.java in the same directory
 javac Generator.java
-java Generator 5 10000 10 100           --> 62kB   ClusterCenter RowNumber Radius Range
+java Generator 5 10000 10 100           --> 62kB   [ClusterCenter RowNumber Radius Range]
 java Generator 10 100000 100 10000     --> 1.0MB
 java Generator 10 15000000 300 10000    --> 148.5MB
-start-all.sh
+start-all.sh                            —-> start hadoop
 hadoop dfs -mkdir /user/jhe/project2
 hadoop dfs -put Dataset /user/jhe/project2
 mkdir project2
 mkdir project2/task2
 javac -classpath hadoop-1.1.0/hadoop-core-1.1.0.jar -d project2/task2 Kmeans.java
 jar -cvf ./task2.jar -C project2/task2/ .
-hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 1 5
+hadoop jar task2.jar edu.wpi.cs525.Kmeans /user/jhe/project2/KCenters /user/jhe/project2/Dataset /user/jhe/project2/output 50 10 y
+
+//for task 3
+// Not finished yet . . . 
 
 //convert data into numeric feature vectors
-//files needed: dict1, freq1  —> produced by mahout; tokens.txt
+//files needed: dict1, freq1  —> produced by mahout; and tokens.txt
 javac ConvertDataToNFV.java
 java ConvertDataToNFV
+
+//for latest files you can always find them here
+https://github.com/jiefenghaspower/courseProjects/tree/master/CS525LargeScaleDataManagement/SecretGarden/project2
