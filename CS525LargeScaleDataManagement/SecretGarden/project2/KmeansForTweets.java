@@ -19,21 +19,45 @@ import org.apache.hadoop.filecache.DistributedCache;
 
 public class KmeansForTweets{
 	// The Map task
+    private final static precision = 0.0000001;
 	public static ArrayList<NumericFeatureVector> centroids = new ArrayList<NumericFeatureVector>();
     
     private static class NumericFeatureVector{
         HashMap<Integer, Double> hash = null;
         
         public NumericFeatureVector(String data){
+            hash = new HashMap<Integer, Integer>();
             if(data==null)
                 return;
-            hash = new HashMap<Integer, Integer>();
             String[] elements = data.split(",");
             String[] temp = null;
             for(int i=0; i<elements.size(); i++){
                 temp = elements[i].split(":");
                 hash.put(Integer.parseInt(temp[0]), Double.parseDouble(temp[1]));
             }
+        }
+        
+        public void add(NumericFeatureVector other){
+            if(hash.isEmpty()){
+                hash.putAll(other.hash);
+                return;
+            }
+            
+            //merging two hash
+            for(Integer temp: hash){
+                if(other.hash.containsKey(temp)){
+                    hash.put(temp, hash.get(temp)+other.hash.get(temp));
+                    other.hash.remove(temp);
+                }
+            }
+            if(!other.hash.isEmpty())
+                hash.putAll(other.hash);
+            
+        }
+        
+        public void divide(int n){
+            for(Integer temp: hash)
+                hash.put(temp, hash.get(temp)/n);
         }
         
         public double similarity(NumericFeatureVector other){
@@ -110,6 +134,10 @@ public class KmeansForTweets{
             int index = 0;
 		
             NumericFeatureVector nfv = new NumericFeatureVector(data);
+            //because the attributes of the nfv is larger than 0,
+            //result of nfv.similarity will return a value between 0 and 1
+            //and 1 means the two vectors are the same, 0 means the two vectores are independent
+            // so just need to find the largest return value of cos, which means more near to 1
             for (int i = 0; i < centroids.size(); i++){
                 cos = nfv.similarity(centroids.get(i));
 			
@@ -129,52 +157,36 @@ public class KmeansForTweets{
 	    public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
 
 	    	int n = 0;
-			long x_sum = 0;
-			long y_sum = 0;
-
+            NumericFeatureVector nfv = new NumericFeatureVector(null);
+            
 	    	while (values.hasNext()) {
-				String point = values.next().toString();
-        	    String[] data = point.split(",");
-
-	    		int x = Integer.parseInt(data[0]);
-				int y = Integer.parseInt(data[1]);
-				
-				x_sum += (long)x;
-				y_sum += (long)y;
-				
+				String dataTemp = values.next().toString();
+				NumericFeatureVector nfvTemp = new NumericFeatureVector(dataTemp);
+                nfv.add(nfvTemp);
+                
 				n += 1;
 	    	}
-	        output.collect(key, new Text(x_sum + "," + y_sum + "," + n));
+	        output.collect(key, new Text(nfv.toString() + "#" + n));
 	    }
 	}
 
     public static class Reduce extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
 
 	    public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-			int n_sum = 0;
-			long x_sum = 0;
-			long y_sum = 0;
-			String new_centroid;
-			String org_centroid = key.toString();
+			int nSum = 0;
+			String newCentroid;
+			String oldCentroid = key.toString();
+            NumericFeatureVector nfv = new NumericFeatureVector(null);
 
 			while (values.hasNext()) {
-				String point = values.next().toString();
-				String[] data = point.split(",");
-				
-				Long x = Long.parseLong(data[0]);
-				Long y = Long.parseLong(data[1]);
-				int n = Integer.parseInt(data[2]);
-
-				x_sum += x;
-				y_sum += y;
-				
-				n_sum += n;
-				
+				String dataTemp = values.next().toString();
+                String data[] = dataTemp.split("#");
+				NumericFeatureVector nfvTemp = new NumericFeatureVector(data[0]);
+				nfv.add(nfvTemp);
+				nSum += Integer.parseInt(data[1]);;
 			}
 			
-            int new_centroidX = (int) (Math.round( (x_sum + 0.0) / n_sum));
-            int new_centroidY = (int) (Math.round( (y_sum + 0.0) / n_sum));
-			new_centroid = new_centroidX + "," + new_centroidY;
+            nfv = nfv.divide(nSum);
 			
 			if (org_centroid.equals(new_centroid)){
 				output.collect(new Text(new_centroid), new Text(""));
