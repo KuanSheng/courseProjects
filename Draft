@@ -72,8 +72,6 @@ point4 sphereColors[1000];
 point4 cylinderVertices[50];
 point4 cylinderPoints[200];
 point4 cylinderColors[200];
-point4 groundPoints[50000];
-point4 groundColors[50000];
 point4 vertices[7000];
 point4 points[41000];
 point4 colors[41000];
@@ -89,7 +87,6 @@ bool shadowOn = false;
 bool grassOn = false;
 bool fogOn = false;
 mat4 viewMat = LookAt( eye, vec4(0,0,0,1), vec4(0,1,0,0));
-int startOfCylinder=0, startOfCar=0, startOfLamp=0, startOfB=0, startOfGround=0;
 
 static  GLuint  texture = 0;
 float fog = 3.0;
@@ -99,11 +96,9 @@ bool drawNewTree = true;
 
 // handle to program
 GLuint program;
-GLuint vColor;
 GLuint vTexCoord;
-GLuint vPosition;
-
-using namespace std;
+GLuint vao, vao1;
+GLuint buffer, buffer1;
 
 // RGBA olors
 color4 vertex_colors[8] = {
@@ -139,40 +134,19 @@ vec2 groundTexture[6]={
 void generateGeometry( void )
 {	
     // Create a vertex array object
-    GLuint vao;
     glGenVertexArrays( 1, &vao );
     glBindVertexArray( vao );
 
     program = InitShader( "vshader1.glsl", "fshader1.glsl" );
     glUseProgram( program );
 
-	GLuint buffer;
     glGenBuffers( 1, &buffer );
     glBindBuffer( GL_ARRAY_BUFFER, buffer);
 
-	// Load shaders and use the resulting shader program
-
-    // set up vertex arrays
-    vPosition = glGetAttribLocation( program, "vPosition" );
-    glEnableVertexAttribArray( vPosition );
-    /*glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(0) );*/
-
-    // Since our texture coordinates match our vertex positions, we
-    //   can reuse the position data for our texture coordinates.
-    /*GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" ); 
-    glEnableVertexAttribArray( vTexCoord );
-	glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, 
-		BUFFER_OFFSET(sizeof(groundVertices1)) );*/
-
-    vColor = glGetAttribLocation( program, "vColor" ); 
-    glEnableVertexAttribArray( vColor );
-    /*glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );*/
-
-    // Set our texture samples to the active texture unit
-    /*glUniform1i( glGetUniformLocation(program, "texture"), 0 );
-    glBindTexture(GL_TEXTURE_2D, texture);*/
+	glGenVertexArrays( 1, &vao1 );
+    glBindVertexArray( vao1 );
+	glGenBuffers( 1, &buffer1 );
+    glBindBuffer( GL_ARRAY_BUFFER, buffer1);
 
 	// sets the default color to clear screen
     glClearColor( 1.0, 1.0, 1.0, 1.0 ); // white background
@@ -201,6 +175,8 @@ void display( void )
 void drawForest(){
 	int randNumb;
 
+	
+
 	drawMode = 0.0;
 	glUniform1f( glGetUniformLocation(program, "DrawMode"), drawMode);
 
@@ -213,14 +189,14 @@ void drawForest(){
 	
 	drawTree(treePosition[0]);
 	//drawTree(treePosition[1]);
-	//drawCar();
-	//drawLamp();
-	//drawBeethoven();
+	drawCar();
+	drawLamp();
+	drawBeethoven();
 
 	drawMode = 1.0;
 	glUniform1f( glGetUniformLocation(program, "DrawMode"), drawMode);
 
-	//drawGround();
+	drawGround();
 }
 
 // keyboard handler
@@ -431,11 +407,22 @@ void drawSphere(float x, float y, float z){
 			sphereColors[i] = (sphereColors[i] + vertex_colors[randColor])/2;
 		}
 
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereColors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(spherePoints), spherePoints );
 		glBufferSubData( GL_ARRAY_BUFFER, sizeof(spherePoints), sizeof(sphereColors), sphereColors );
-		startOfCylinder = sizeof(spherePoints) + sizeof(sphereColors);
-		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+ 
+
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -458,14 +445,21 @@ void drawSphere(float x, float y, float z){
 		for(int i=0; i<1000; i++){
 			sphereColors[i] = vertex_colors[0];
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereColors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(spherePoints), spherePoints );
 		glBufferSubData( GL_ARRAY_BUFFER, sizeof(spherePoints), sizeof(sphereColors), sphereColors );
-		startOfCylinder = sizeof(spherePoints) + sizeof(sphereColors);
  
-		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -492,14 +486,22 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		for(int i=0; i<200; i++){
 			cylinderColors[i] = (cylinderColors[i] + vertex_colors[randColor])/2;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(cylinderPoints) + sizeof(cylinderColors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCylinder, sizeof(cylinderPoints), cylinderPoints );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCylinder + sizeof(cylinderPoints), sizeof(cylinderColors), cylinderColors );
-		startOfCar = startOfCylinder + sizeof(cylinderPoints) + sizeof(cylinderColors);
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cylinderPoints), cylinderPoints );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(cylinderPoints), sizeof(cylinderColors), cylinderColors );
  
-		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCylinder) );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCylinder + sizeof(cylinderPoints)) );
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cylinderPoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -518,16 +520,26 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
 		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, modelMat );
 
-		for(int i=0; i<1000; i++){
+		for(int i=0; i<200; i++){   // Fu*k!!! For this bug I worked for more than 5 hours! Because copying from drawSphere, it was i<1000
 			cylinderColors[i] = vertex_colors[0];
 		}
 
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(cylinderPoints) + sizeof(cylinderColors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCylinder, sizeof(cylinderPoints), cylinderPoints );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCylinder + sizeof(cylinderPoints), sizeof(cylinderColors), cylinderColors );
-		startOfCar = startOfCylinder + sizeof(cylinderPoints) + sizeof(cylinderColors);
-        glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCylinder) );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCylinder + sizeof(cylinderPoints)) );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cylinderPoints), cylinderPoints );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(cylinderPoints), sizeof(cylinderColors), cylinderColors );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cylinderPoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -786,9 +798,10 @@ void drawGround(void){
 		modelMat *= Angel::RotateY(-45.0f);
 		modelMat = Angel::RotateY(90) * modelMat;
 
+		glBindBuffer( GL_ARRAY_BUFFER, buffer1);
 		glBufferData( GL_ARRAY_BUFFER,sizeof(groundVertices1) + sizeof(groundTexture), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfGround, sizeof(groundVertices1), groundVertices1 );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfGround + sizeof(groundVertices1), sizeof(groundTexture), groundTexture );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(groundVertices1), groundVertices1 );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(groundVertices1), sizeof(groundTexture), groundTexture );
 
 		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
 		glEnableVertexAttribArray( vPosition );
@@ -798,7 +811,7 @@ void drawGround(void){
 		GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" ); 
 		glEnableVertexAttribArray( vTexCoord );
 		glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0,
-				   BUFFER_OFFSET(startOfGround + sizeof(groundVertices1))  );
+				   BUFFER_OFFSET(sizeof(groundVertices1))  );
 
 		glUniform1i( glGetUniformLocation(program, "texture"), 0 );
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -865,7 +878,6 @@ void drawGround(void){
 void drawCar(void){
 
 	Angel::mat4 modelMat = Angel::Translate(0.0, 0, 0.0);
-	modelMat *= Angel::Scale(2.0, 2.0, 2.0);
 	modelMat *= Angel::RotateX(-90.0f);
 	modelMat *= Angel::RotateZ(-90.0f);
 	modelMat = Angel::RotateY(90) * modelMat;
@@ -880,13 +892,22 @@ void drawCar(void){
 		for(int i=0; i<41000; i++){
 			colors[i]=carColor;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCar, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCar+sizeof(points), sizeof(colors), colors );
-		startOfLamp = startOfCar + sizeof(points) + sizeof(colors);
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
  
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCar + sizeof(points)) );
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -910,13 +931,22 @@ void drawCar(void){
 		for(int i=0; i<41000; i++){
 			colors[i]=carColor;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCar, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfCar+sizeof(points), sizeof(colors), colors );
-		startOfLamp = startOfCar + sizeof(points) + sizeof(colors);
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
  
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfCar + sizeof(points)) );
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -940,12 +970,22 @@ void drawLamp(){
 			colors[i]=lampColor;
 		}
 
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp + sizeof(points), sizeof(colors), colors );
-        startOfB = startOfLamp + sizeof(points) + sizeof(colors);
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfLamp + sizeof(points)) );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
+
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -969,12 +1009,22 @@ void drawLamp(){
 		for(int i=0; i<41000; i++){
 			colors[i]=lampColor;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp + sizeof(points), sizeof(colors), colors );
-        startOfB = startOfLamp + sizeof(points) + sizeof(colors);
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfLamp + sizeof(points)) );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -1000,12 +1050,22 @@ void drawBeethoven(){
 		for(int i=0; i<41000; i++){
 			colors[i]=carColor;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp + sizeof(points), sizeof(colors), colors );
-		startOfGround = startOfLamp + sizeof(points) + sizeof(colors);
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfLamp + sizeof(points)) );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
@@ -1029,12 +1089,22 @@ void drawBeethoven(){
 		for(int i=0; i<41000; i++){
 			colors[i]=carColor;
 		}
-
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp, sizeof(points), points );
-		glBufferSubData( GL_ARRAY_BUFFER, startOfLamp + sizeof(points), sizeof(colors), colors );
-		startOfGround = startOfLamp + sizeof(points) + sizeof(colors);
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(startOfLamp + sizeof(points)) );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vColor;
+		vColor = glGetAttribLocation( program, "vColor" ); 
+		glEnableVertexAttribArray( vColor );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(spherePoints)) );
+		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 		glEnable( GL_DEPTH_TEST );
