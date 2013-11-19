@@ -3,23 +3,37 @@ Name: Jiefeng He
 Contact: jhe@wpi.edu
 
 How to operate on my project:
-In windows system, double click the GLSLExperiment.sln to start the project. Then press F5 to run the project. The system state is initially to generate a forest. If ‘A’ is pressed, grass or stone texture is draw, ‘D’ for shadows on/off, ‘F’ for linearly/exponentially with depth fog, ’T’ for reflection on/off, ‘V’ for refraction on/off, ‘K’ for randomly pick ply file to show reflection or refraction effect.
+In windows system, double click the GLSLExperiment.sln to start the project. Then press F5 to run the project. 
+The system state is initially to generate a forest. If ‘A’ is pressed, grass or stone texture is draw, ‘D’ for shadows 
+on/off, ‘F’ for linearly/exponentially with depth fog, ’T’ for reflection on/off, ‘V’ for refraction on/off, ‘K’ for 
+randomly pick ply file to show reflection or refraction effect.
 All the functions are complete.
 
 Key components analyze:
-Since this project is the extension to project 3, so the framework of project 3 is keep here. Following is a brief discussion of how to add such required effect.
+Since this project is the extension to project 3, so the framework of project 3 is keep here. Following is a brief 
+discussion of how to add such required effect.
 
 Texture: 
-since only the ground involves texture, so all the code in drawGround() is to implement such functionality. Basically, it just looks like the example of Appendix A.8 on page 638 of the text book. Before drawGround(), the uniform variable textOn is set appropriately, so that in the fragmentshader, the color will be set by texture.
+since only the ground involves texture, so all the code in drawGround() is to implement such functionality. 
+Basically, it just looks like the example of Appendix A.8 on page 638 of the text book. Before drawGround(), 
+the uniform variable textOn is set appropriately, so that in the fragmentshader, the color will be set by texture.
 
 Shadow:
-This is quite easy. Just imply the algorithm described in Section 4.10. And draw the shadow of the items on the ground with color black. The color of shadows are set in the fragmentshader. This part is implemented in drawSphere(), drawCylinder(), drawCar(), drawLamp(), and drawBeethoven() with condition shadowOn is set to be true by the keyboard interaction.
+This is quite easy. Just imply the algorithm described in Section 4.10. And draw the shadow of the items on the 
+ground with color black. The color of shadows are set in the fragmentshader. This part is implemented in drawSphere(), 
+drawCylinder(), drawCar(), drawLamp(), and drawBeethoven() with condition shadowOn is set to be true by the keyboard 
+interaction.
 
 Fog:
-Same algorithm as described in Lecture 7-1 of http://web.cs.wpi.edu/~emmanuel/courses/cs543/f13/. The code of changing color was added to the tail of the fragment shader, so after computing the color of each fragment, the effect of fog will be mixed with it while considering the effect of fog’s depth either linearly or exponentially.
+Same algorithm as described in Lecture 7-1 of http://web.cs.wpi.edu/~emmanuel/courses/cs543/f13/. The code of changing 
+color was added to the tail of the fragment shader, so after computing the color of each fragment, the effect of fog 
+will be mixed with it while considering the effect of fog’s depth either linearly or exponentially.
 
 Reflection:
-Calculate all the normals each node while reading the plyfiles. In each draw function, when it’s the reflection mode, just bind the points with normals. As the six pictures of environment is already read in system when initialized, just implement it by refeclt(eyeDirec, N) in vertex shader. and textureCube it in fragment shader.
+Calculate all the normals each node while reading the plyfiles. In each draw function, when it’s the reflection mode, 
+just bind the points with normals. As the six pictures of environment is already read in system when initialized, just 
+implement it by refeclt(eyeDirec, N) in vertex shader. and textureCube it in fragment shader.
 
 Refraction:
-This is quite easy, also the same as reflection, just to change the OpenGl functions in vertex shader and fragment shader. Also, little change of the logic in each draw Functions.
+This is quite easy, also the same as reflection, just to change the OpenGl functions in vertex shader and fragment 
+shader. Also, little change of the logic in each draw Functions.
