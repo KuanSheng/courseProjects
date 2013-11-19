@@ -91,11 +91,13 @@ point4 light = point4(-30.0, 30, 50, 1.0);
 point4 oldPoint=newPoint;
 float viewMatrixf[16];
 float modelMatrixf[16];
-char systemState='a';
+char systemState='A';
 bool shadowOn = false;
 bool grassOn = false;
 bool fogOn = false;
 bool reflectionOn = false;
+bool refractionOn = false;
+bool randomOn = false;
 mat4 viewMat = LookAt( eye, vec4(0,0,0,1), vec4(0,1,0,0));
 vec4 tmp1, tmp2, tmp3;
 
@@ -192,15 +194,16 @@ void drawForest(){
 	GLuint vTextOn = glGetUniformLocation( program, "textOn");
 	glUniform1i(vTextOn, false);
 
-	if(drawNewTree){
+	/*if(drawNewTree){
 		treePosition[0]=rand()%5;
 		while(treePosition[0]==(randNumb=rand()%5))
 			;
 		treePosition[1]=randNumb;
-	}
+	}*/
 	
-	drawTree(treePosition[0]);
-	drawTree(treePosition[1]);
+
+	drawTree(1);
+	drawTree(3);
 	drawCar();
 	drawLamp();
 	drawBeethoven();
@@ -214,8 +217,6 @@ void drawForest(){
 // keyboard handler
 void keyboard( unsigned char key, int x, int y )
 {
-	drawNewTree=true;
-
     switch ( key ) {
     case 033:
         exit( EXIT_SUCCESS );
@@ -227,18 +228,11 @@ void keyboard( unsigned char key, int x, int y )
 		break;
 	case 'D':
 		{systemState='D';
-		drawNewTree=false;
 		shadowOn = !shadowOn;
-		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
-		if(shadowOn)
-			glUniform1i(vShadowOn, true);
-		else
-			glUniform1i(vShadowOn, false);
 		glutPostRedisplay();
 		break;}
 	case 'F':
 		systemState='F';
-		drawNewTree=false;
 		fogOn = !fogOn;  // no use
 		if(fog>2.0)
 			fog = 1.0;
@@ -249,8 +243,21 @@ void keyboard( unsigned char key, int x, int y )
 		break;
 	case 'T':
 		systemState='T';
-		drawNewTree=false;
 		reflectionOn = !reflectionOn;
+		refractionOn = false;
+		glutPostRedisplay();
+		break;
+	case 'V':
+		systemState = 'V';
+		refractionOn = !refractionOn;
+		reflectionOn = false;
+		glutPostRedisplay();
+		break;
+	case 'K':
+		systemState = 'K';
+		randomOn = !randomOn;
+		reflectionOn = false;
+		refractionOn = false;
 		glutPostRedisplay();
 		break;
     }
@@ -293,14 +300,16 @@ int main( int argc, char **argv )
 		processLsystem(i);
 	}
 
-	//loadEnvPic();
+	loadEnvPic();
 	readPlyFile("sphere.ply");
 	readPlyFile("cylinder.ply");
 
 	int randColor=rand()%6;
 
-	GLuint vReflect = glGetUniformLocation( program, "reflection");
-	glUniform1i(vReflect, false);
+    point4 color=(vertex_colors[4]+vertex_colors[1])/2.0;
+	for(int i=0; i<41000; i++){
+		colors[i] = color;
+	}
 
 	for(int i=0; i<1000; i++){
 		sphereColors[i]=vertex_colors[randColor];
@@ -310,7 +319,7 @@ int main( int argc, char **argv )
 		cylinderColors[i]=vertex_colors[randColor];
 	}
 
-	point4 color=(vertex_colors[3]+vertex_colors[5])/2.0;
+    color=(vertex_colors[3]+vertex_colors[5])/2.0;
 	for(int i=0; i<36; i++){
 			cubeColors[i] = color;
 	}
@@ -443,7 +452,6 @@ void drawSphere(float x, float y, float z) {
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(spherePoints), spherePoints );
 		glBufferSubData( GL_ARRAY_BUFFER, sizeof(spherePoints), sizeof(sphereColors), sphereColors );
  
-
 		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
 		glEnableVertexAttribArray( vPosition );
 		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
@@ -465,15 +473,15 @@ void drawSphere(float x, float y, float z) {
 		m[3][1] = -1.0/(light.y);
 		m[3][3] = 0.0;
 
+		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
+		glUniform1i(vShadowOn, true);
+
 		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
-		modelMat = m * modelMat;
+		m = m * modelMat;
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, modelMat );
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, m );
 
-		for(int i=0; i<1000; i++){
-			sphereColors[i] = vertex_colors[0];
-		}
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereColors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(spherePoints), spherePoints );
@@ -493,6 +501,8 @@ void drawSphere(float x, float y, float z) {
 		glEnable( GL_DEPTH_TEST );
 		glDrawArrays( GL_TRIANGLES, 0,numberOfSpherePolygons*3 );
 		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vShadowOn, false);
 	}
 }
 
@@ -539,15 +549,14 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		m[3][1] = -1.0/(light.y);
 		m[3][3] = 0.0;
 
+		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
+		glUniform1i(vShadowOn, true);
+
 		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
-		modelMat = m * modelMat;
+		m = m * modelMat;
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, modelMat );
-
-		for(int i=0; i<200; i++){   // Fu*k!!! For this bug I worked for more than 5 hours! Because copying from drawSphere, it was i<1000
-			cylinderColors[i] = vertex_colors[0];
-		}
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, m );
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(cylinderPoints) + sizeof(cylinderColors), NULL, GL_STATIC_DRAW );
@@ -568,6 +577,8 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		glEnable( GL_DEPTH_TEST );
 		glDrawArrays( GL_TRIANGLES, 0,numberOfCylinderPolygons*3 );
 		glDisable( GL_DEPTH_TEST );
+
+		glUniform1i(vShadowOn, false);
 	}
 }
 
@@ -808,7 +819,6 @@ void drawTree(int index){
 }
 
 void loadEnvPic(void){
-	//glEnable(GL_TEXTURE_CUBE_MAP);
 
 	glActiveTexture(GL_TEXTURE1);
 	glGenTextures(1, &tex);
@@ -996,15 +1006,20 @@ void drawCar(void){
 	modelMat = Angel::RotateY(90) * modelMat;
 	readPlyFile("pickup_big.ply");
 
-	if(systemState!='D'||systemState!='F'){
+	if( shadowOn ){
+		Angel::mat4 m = Angel::identity();
+		m[3][1] = -1.0/(light.y);
+		m[3][3] = 0.0;
+
+		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
+		glUniform1i(vShadowOn, true);
+
+		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
+		m = m * modelMat;
+
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
-	
-		point4 carColor=(vertex_colors[1]+vertex_colors[3])/2.0;
-		carColor.w=1.0;
-		for(int i=0; i<41000; i++){
-			colors[i]=carColor;
-		}
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, m );
+
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
@@ -1024,24 +1039,54 @@ void drawCar(void){
 		glEnable( GL_DEPTH_TEST );
 		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
 		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vShadowOn, false);
 	}
 
-	if( shadowOn ){
-		Angel::mat4 m = Angel::identity();
-		m[3][1] = -1.0/(light.y);
-		m[3][3] = 0.0;
-
-		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
-		Angel::mat4 mm = m * modelMat;
+	if(reflectionOn || refractionOn || randomOn){
+		GLuint vReflect = glGetUniformLocation( program, "reflection");
+		GLuint vRefract = glGetUniformLocation( program, "refraction");
+		int pick = rand()%2;
+        if(reflectionOn)
+			pick = 0;
+		else if(refractionOn)
+			pick = 1;
+		if(pick == 0)
+			glUniform1i(vReflect, true);
+		else
+			glUniform1i(vRefract, true);
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, mm );
-	
-		point4 carColor=vertex_colors[0];
-		carColor.w=1.0;
-		for(int i=0; i<41000; i++){
-			colors[i]=carColor;
-		}
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
+
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
+		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(normals), NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(normals), normals );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vNormal = glGetAttribLocation(program, "Normal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
+
+		texMapLocation = glGetUniformLocation(program, "texMap");
+		glUniform1i(texMapLocation, 1); // corresponding to unit 1
+         
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+		glEnable( GL_DEPTH_TEST );
+		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
+		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vReflect, false);
+		glUniform1i(vRefract, false);
+	}else{
+		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
+
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
@@ -1069,17 +1114,22 @@ void drawLamp(){
 
 	Angel::mat4 modelMat = Angel::Translate(-10.0, 0, 12.0);
 	modelMat = Angel::RotateY(90) * modelMat;
-	point4 lampColor=(vertex_colors[4]+vertex_colors[1])/2.0;
-	lampColor.w=1.0;
+	
 	readPlyFile("street_lamp.ply");
 
-	if(systemState!='D'||systemState!='F'){
+	if( shadowOn ){
+		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
+		glUniform1i(vShadowOn, true);
+
+		Angel::mat4 m = Angel::identity();
+		m[3][1] = -1.0/(light.y);
+		m[3][3] = 0.0;
+
+		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
+		m = m * modelMat;
+
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
-	
-		for(int i=0; i<41000; i++){
-			colors[i]=lampColor;
-		}
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, m );
 
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
@@ -1099,22 +1149,53 @@ void drawLamp(){
 		glEnable( GL_DEPTH_TEST );
 		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
 		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vShadowOn, false);
 	}
 
-	if( shadowOn ){
-		Angel::mat4 m = Angel::identity();
-		m[3][1] = -1.0/(light.y);
-		m[3][3] = 0.0;
-
-		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
-		modelMat = m * modelMat;
+	if(reflectionOn || refractionOn || randomOn){
+		GLuint vReflect = glGetUniformLocation( program, "reflection");
+		GLuint vRefract = glGetUniformLocation( program, "refraction");
+		int pick = rand()%2;
+        if(reflectionOn)
+			pick = 0;
+		else if(refractionOn)
+			pick = 1;
+		if(pick == 0)
+			glUniform1i(vReflect, true);
+		else
+			glUniform1i(vRefract, true);
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, modelMat );
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
 
-		for(int i=0; i<41000; i++){
-			colors[i]=vertex_colors[0];
-		}
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
+		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(normals), NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(normals), normals );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vNormal = glGetAttribLocation(program, "Normal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
+
+		texMapLocation = glGetUniformLocation(program, "texMap");
+		glUniform1i(texMapLocation, 1); // corresponding to unit 1
+         
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+		glEnable( GL_DEPTH_TEST );
+		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
+		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vReflect, false);
+		glUniform1i(vRefract, false);
+	}else{
+		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
 
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
@@ -1144,16 +1225,20 @@ void drawBeethoven(){
 	modelMat = Angel::RotateY(90) * modelMat;
 	readPlyFile("beethoven.ply");
 
-	if(systemState!='D'||systemState!='F'){
+	if( shadowOn ){
+		Angel::mat4 m = Angel::identity();
+		m[3][1] = -1.0/(light.y);
+		m[3][3] = 0.0;
+
+		GLuint vShadowOn = glGetUniformLocation( program, "shadowOn");
+		glUniform1i(vShadowOn, true);
+
+		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
+		m = m * modelMat;
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, m );
 
-		point4 carColor=(vertex_colors[1]+vertex_colors[4])/2.0;
-		carColor.w=1.0;
-		for(int i=0; i<41000; i++){
-			colors[i]=carColor;
-		}
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
@@ -1173,24 +1258,54 @@ void drawBeethoven(){
 		glEnable( GL_DEPTH_TEST );
 		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
 		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vShadowOn, false);
 	}
 
-	if( shadowOn ){
-		Angel::mat4 m = Angel::identity();
-		m[3][1] = -1.0/(light.y);
-		m[3][3] = 0.0;
-
-		m = viewMat * Angel::Translate(light.x, light.y, light.z) * m * Angel::Translate(-light.x, -light.y, -light.z);
-		modelMat = m * modelMat;
+	if(reflectionOn || refractionOn || randomOn){
+		GLuint vReflect = glGetUniformLocation( program, "reflection");
+		GLuint vRefract = glGetUniformLocation( program, "refraction");
+		int pick = rand()%2;
+        if(reflectionOn)
+			pick = 0;
+		else if(refractionOn)
+			pick = 1;
+		if(pick == 0)
+			glUniform1i(vReflect, true);
+		else
+			glUniform1i(vRefract, true);
 
 		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
-		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, modelMat );
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
 
-		point4 carColor=vertex_colors[0];
-		carColor.w=1.0;
-		for(int i=0; i<41000; i++){
-			colors[i]=carColor;
-		}
+		glBindBuffer( GL_ARRAY_BUFFER, buffer);
+		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(normals), NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(points), sizeof(normals), normals );
+ 
+		GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition );
+		glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				   BUFFER_OFFSET(0) );
+ 
+		GLuint vNormal = glGetAttribLocation(program, "Normal");
+		glEnableVertexAttribArray(vNormal);
+		glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
+
+		texMapLocation = glGetUniformLocation(program, "texMap");
+		glUniform1i(texMapLocation, 1); // corresponding to unit 1
+         
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+		glEnable( GL_DEPTH_TEST );
+		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
+		glDisable( GL_DEPTH_TEST ); 
+
+		glUniform1i(vReflect, false);
+		glUniform1i(vRefract, false);
+	}else{
+		GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
+		glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
+
 		glBindBuffer( GL_ARRAY_BUFFER, buffer);
 		glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW );
 		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(points), points );
@@ -1219,7 +1334,7 @@ void drawCube(void){
 		glUniform1i(vReflect, true);
 
 	Angel::mat4 modelMat = Angel::Translate(10.0,10, 12.0);
-	modelMat *= Angel::Scale(5, 5, 5);
+	modelMat *= Angel::Scale(0.1, 0.1, 0.1);
 	modelMat = Angel::RotateY(90) * modelMat;
 	
 
@@ -1240,62 +1355,16 @@ void drawCube(void){
 	glEnableVertexAttribArray(vNormal);
 	glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0,
 			   BUFFER_OFFSET(sizeof(cubePoints)) );
-
-	/*GLuint vColor;
-	vColor = glGetAttribLocation( program, "vColor" ); 
-	glEnableVertexAttribArray( vColor );
-	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cubePoints)) );*/
          
 	texMapLocation = glGetUniformLocation(program, "texMap");
 	glUniform1i(texMapLocation, 1); // corresponding to unit 1
 
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	glEnable( GL_DEPTH_TEST );
 	glDrawArrays( GL_TRIANGLES, 0, 36 );
 	glDisable( GL_DEPTH_TEST ); 
 
-	vReflect = glGetUniformLocation( program, "reflection");
-	if(reflectionOn)
-		glUniform1i(vReflect, false);
-
-	//GLuint cubevao;
- //   glGenVertexArrays( 1, &cubevao );
- //   glBindVertexArray( cubevao );
-	//GLuint buffercube;
- //   glGenBuffers( 1, &buffercube );
- //   glBindBuffer( GL_ARRAY_BUFFER, buffercube );
-
-	//glBufferData( GL_ARRAY_BUFFER, sizeof(mpoints) + sizeof(normals),
-	//	  NULL, GL_STATIC_DRAW );
- //   glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(mpoints), mpoints );
- //   glBufferSubData( GL_ARRAY_BUFFER, sizeof(mpoints), sizeof(normals), normals );
-
-	//GLuint vPosition = glGetAttribLocation( program, "vPosition" );
- //   glEnableVertexAttribArray( vPosition );
- //   glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
-	//		   BUFFER_OFFSET(0) );
-	//
-	//GLuint vNormal = glGetAttribLocation(program, "Normal");
-	//glEnableVertexAttribArray(vNormal);
-	//glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0,
-	//		   BUFFER_OFFSET(sizeof(mpoints)) );
-
-
-	//texMapLocation = glGetUniformLocation(program, "texMap");
- //   glUniform1i(texMapLocation, 1); // corresponding to unit 1
-
-	//GLuint vRefOn = glGetUniformLocation( program, "refOn");
-	//if ( reflectON == true )
-	//	glUniform1i (vRefOn, true);
-	//else
-	//	glUniform1i (vRefOn, false);
-
-
-
-	//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	//glEnable( GL_DEPTH_TEST );
-	//glDrawArrays( GL_TRIANGLES, 0, 36 );
-	//glDisable( GL_DEPTH_TEST ); 
+	glUniform1i(vReflect, false);  //close reflection on other objects
 }
 
 void quad(int a, int b, int c, int d){
