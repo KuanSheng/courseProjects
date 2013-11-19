@@ -40,6 +40,9 @@ void drawLamp(void);
 void drawBeethoven(void);
 int generateRandom(int left, int right);
 void loadEnvPic(void);
+void quad(int a, int b, int c, int d);
+void cube(void);
+void drawCube(void);
 
 typedef Angel::vec4  color4;
 typedef Angel::vec4  point4;
@@ -77,6 +80,9 @@ point4 vertices[7000];
 point4 normals[41000];
 point4 points[41000];
 point4 colors[41000];
+point4 cubePoints[36];
+point4 cubeColors[36];
+point4 cubeNormals[36];
 
 float theta=0.0f;
 point4 newPoint=point4(0.0,  0.0,  0.0, 1.0);
@@ -138,6 +144,7 @@ vec2 groundTexture[6]={
 	vec2(0.0, 0.0)
 };
 
+
 void generateGeometry( void )
 {	
     // Create a vertex array object
@@ -194,7 +201,8 @@ void drawForest(){
 	}
 	
 	drawTree(treePosition[0]);
-	//drawTree(treePosition[1]);
+	drawTree(treePosition[1]);
+	drawCube();
 	drawCar();
 	drawLamp();
 	drawBeethoven();
@@ -428,8 +436,6 @@ void drawSphere(float x, float y, float z) {
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -465,8 +471,6 @@ void drawSphere(float x, float y, float z) {
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -506,8 +510,6 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cylinderPoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -544,8 +546,6 @@ void drawCylinder(float x, float y, float z, float angleX, float angleY, float a
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cylinderPoints)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -973,8 +973,8 @@ void drawGround(void){
 }
 
 void drawCar(void){
-
-	Angel::mat4 modelMat = Angel::Scale(2, 2, 2);
+	Angel::mat4 modelMat = Angel::Translate(0.0, 4, 0.0);
+	modelMat *= Angel::Scale(2, 2, 2);
 	modelMat *= Angel::RotateX(-90.0f);
 	modelMat *= Angel::RotateZ(-90.0f);
 	modelMat = Angel::RotateY(90) * modelMat;
@@ -1002,8 +1002,6 @@ void drawCar(void){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1041,8 +1039,6 @@ void drawCar(void){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1080,8 +1076,6 @@ void drawLamp(){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1119,8 +1113,6 @@ void drawLamp(){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1160,8 +1152,6 @@ void drawBeethoven(){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1199,8 +1189,6 @@ void drawBeethoven(){
 		GLuint vColor;
 		vColor = glGetAttribLocation( program, "vColor" ); 
 		glEnableVertexAttribArray( vColor );
-		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(spherePoints)) );
 		glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)) );
          
 		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -1208,4 +1196,136 @@ void drawBeethoven(){
 		glDrawArrays( GL_TRIANGLES, 0, numberOfPolygons*3 );
 		glDisable( GL_DEPTH_TEST ); 
 	}
+}
+
+void drawCube(void){
+	Angel::mat4 modelMat = Angel::Translate(10.0,10, 12.0);
+	modelMat *= Angel::Scale(5, 5, 5);
+	modelMat = Angel::RotateY(90) * modelMat;
+	point4 color=(vertex_colors[3]+vertex_colors[5])/2.0;
+	for(int i=0; i<36; i++){
+			cubeColors[i] = color;
+	}
+
+	cube();
+
+	GLuint modelMatrix = glGetUniformLocationARB(program, "model_matrix");
+	glUniformMatrix4fv( modelMatrix, 1, GL_TRUE, viewMat * modelMat );
+
+	glBindBuffer( GL_ARRAY_BUFFER, buffer);
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cubePoints) + sizeof(cubeNormals), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cubePoints), cubePoints );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cubePoints), sizeof(cubeNormals), cubeNormals );
+
+	GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition );
+	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+				BUFFER_OFFSET(0) );
+ 
+	GLuint vNormal = glGetAttribLocation(program, "Normal");
+	glEnableVertexAttribArray(vNormal);
+	glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(sizeof(cubePoints)) );
+
+	/*GLuint vColor;
+	vColor = glGetAttribLocation( program, "vColor" ); 
+	glEnableVertexAttribArray( vColor );
+	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cubePoints)) );*/
+         
+	texMapLocation = glGetUniformLocation(program, "texMap");
+	glUniform1i(texMapLocation, 1); // corresponding to unit 1
+
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	glEnable( GL_DEPTH_TEST );
+	glDrawArrays( GL_TRIANGLES, 0, 36 );
+	glDisable( GL_DEPTH_TEST ); 
+
+	//GLuint cubevao;
+ //   glGenVertexArrays( 1, &cubevao );
+ //   glBindVertexArray( cubevao );
+	//GLuint buffercube;
+ //   glGenBuffers( 1, &buffercube );
+ //   glBindBuffer( GL_ARRAY_BUFFER, buffercube );
+
+	//glBufferData( GL_ARRAY_BUFFER, sizeof(mpoints) + sizeof(normals),
+	//	  NULL, GL_STATIC_DRAW );
+ //   glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(mpoints), mpoints );
+ //   glBufferSubData( GL_ARRAY_BUFFER, sizeof(mpoints), sizeof(normals), normals );
+
+	//GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+ //   glEnableVertexAttribArray( vPosition );
+ //   glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+	//		   BUFFER_OFFSET(0) );
+	//
+	//GLuint vNormal = glGetAttribLocation(program, "Normal");
+	//glEnableVertexAttribArray(vNormal);
+	//glVertexAttribPointer( vNormal, 4, GL_FLOAT, GL_FALSE, 0,
+	//		   BUFFER_OFFSET(sizeof(mpoints)) );
+
+
+	//texMapLocation = glGetUniformLocation(program, "texMap");
+ //   glUniform1i(texMapLocation, 1); // corresponding to unit 1
+
+	//GLuint vRefOn = glGetUniformLocation( program, "refOn");
+	//if ( reflectON == true )
+	//	glUniform1i (vRefOn, true);
+	//else
+	//	glUniform1i (vRefOn, false);
+
+
+
+	//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	//glEnable( GL_DEPTH_TEST );
+	//glDrawArrays( GL_TRIANGLES, 0, 36 );
+	//glDisable( GL_DEPTH_TEST ); 
+}
+
+void quad(int a, int b, int c, int d){
+	point4 normal;
+
+	point4 vertices[8] = {
+		point4( -0.5, -0.5,  0.5, 1.0 ),
+		point4( -0.5,  0.5,  0.5, 1.0 ),
+		point4(  0.5,  0.5,  0.5, 1.0 ),
+		point4(  0.5, -0.5,  0.5, 1.0 ),
+		point4( -0.5, -0.5, -0.5, 1.0 ),
+		point4( -0.5,  0.5, -0.5, 1.0 ),
+		point4(  0.5,  0.5, -0.5, 1.0 ),
+		point4(  0.5, -0.5, -0.5, 1.0 )
+    };
+
+    static int index =0;
+    normal = normalize(cross(vertices[b]-vertices[a], vertices[c]-vertices[b]));
+    cubeNormals[index] = normal;
+    cubePoints[index] = vertices[a];
+    index++;
+
+    cubeNormals[index] = normal;
+	cubePoints[index] = vertices[b];
+    index++;
+
+    cubeNormals[index] = normal;
+    cubePoints[index] = vertices[c];
+    index++;
+
+    cubeNormals[index] = normal;
+    cubePoints[index] = vertices[a];
+    index++;
+
+    cubeNormals[index] = normal;
+    cubePoints[index] = vertices[c];
+    index++;
+
+    cubeNormals[index] = normal;
+    cubePoints[index] = vertices[d];
+    index++;
+}
+
+void cube( void ){
+    quad( 1, 0, 3, 2 );
+    quad( 2, 3, 7, 6 );
+    quad( 3, 0, 4, 7 );
+    quad( 6, 5, 1, 2 );
+    quad( 4, 5, 6, 7 );
+    quad( 5, 4, 0, 1 );
 }
