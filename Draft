@@ -6,6 +6,7 @@
 
 #define CHUNKSIZE 1000
 #define N    500000
+#define M    300
 
 bool isPrime(int a){
 	for(int i=2; i<=sqrt(a*1.0); i++)
@@ -14,11 +15,21 @@ bool isPrime(int a){
 	return true;
 }
 
+double slowDownMultiply(double (&A)[M][M], double x[], int p, int q)
+{
+	int i=0;
+	while(i<1000)
+		i++;
+	return A[p][q] * x[p];
+}
+
 int main(int argc, char *argv[])
 {
     int nthreads, tid, i, count=1;
 	clock_t start, end;
 	double processingTime, time1, time2;
+
+	printf("Problem1: Count the number of prime numbers\n");
 
 	start = clock();
 	for(i=3; i<=N; i+=2)
@@ -73,8 +84,75 @@ int main(int argc, char *argv[])
 	time2 = omp_get_wtime();
 	printf("There are %d prime numbers which is equal or less than %d\n", count, N);
 	printf("Time used for %d static scheduling threads is %fs\n", nthreads, time2-time1);
-
 	printf("\n");
+
+	/************************************************************************************/
+	printf("Problem2: Matrix vector multiplication\n");
+
+	double A[M][M], x[M], y[M];
+	int j=0;
+	//initialization
+	for(i=0; i<M; i++)
+		for(j=0; j<M; j++)
+			A[i][j] = i*1.234;
+
+	for(i=0; i<M; i++)
+		x[i] = i*1.987;
+
+	for(i=0; i<M; i++)
+		y[i] = 0.0;
+
+	start = clock();
+	for(i=0; i<M; i++)
+		for(j=0; j<M; j++)
+			y[i] += slowDownMultiply(A, x, i, j);
+	end = clock();
+	processingTime = (double) (end - start)/CLOCKS_PER_SEC;
+	printf("Time used for single thread program is %fs\n", processingTime);
+	printf("\n");
+
+	for(i=0; i<M; i++)
+		y[i] = 0.0;
+	chunk = 10;
+
+	time1 = omp_get_wtime();
+    #pragma omp parallel shared(nthreads) private(i, j, tid)
+    {
+        tid = omp_get_thread_num();
+		if(tid==0){
+			nthreads = omp_get_num_threads();
+		}
+     
+		#pragma omp for schedule(dynamic, chunk)
+		for(i=0; i<M; i++)
+			for(j=0; j<M; j++)
+				y[i] += slowDownMultiply(A, x, i, j);
+	}
+	time2 = omp_get_wtime();
+	printf("Time used for %d dynamic scheduling threads is %fs\n", nthreads, time2-time1);
+	printf("\n");
+
+	for(i=0; i<M; i++)
+		y[i] = 0.0;
+	chunk = 10;
+
+	time1 = omp_get_wtime();
+    #pragma omp parallel shared(nthreads) private(i, j, tid)
+    {
+        tid = omp_get_thread_num();
+		if(tid==0){
+			nthreads = omp_get_num_threads();
+		}
+     
+		#pragma omp for schedule(static, chunk)
+		for(i=0; i<M; i++)
+			for(j=0; j<M; j++)
+				y[i] += slowDownMultiply(A, x, i, j);
+	}
+	time2 = omp_get_wtime();
+	printf("Time used for %d static scheduling threads is %fs\n", nthreads, time2-time1);
+	printf("\n");
+
     printf("press any key to continue\n");
     getchar();
 }
