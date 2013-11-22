@@ -1,43 +1,29 @@
-#version 150
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-in  vec4  interpolatedColor;
-in  vec4 Position;
-in  vec2 texCoord;
-in  vec3 R;
-out vec4 fColor;
+int main(int argc, char *argv[])
+{
+    int nthreads, tid, maxthreads;
+    //omp_set_num_threads(8);
+    maxthreads = omp_get_max_threads();
+    printf("max number of threads = %d\n", maxthreads);
 
-uniform samplerCube texMap;
-uniform sampler2D texture;
-uniform float fog;
-uniform bool reflection;
-uniform bool textOn;
+    /*Fork a team of threads giving them their own copies of variables*/
+    #pragma imp parallel private(nthreads, tid)
+    {
+        tid = omp_get_thread_num();
+        printf("Hello World from thread = %d\n", tid);
 
-void main(){
-	float dist = abs(Position.z);
-	float fogFactor;
-	float fogMaxDist = 80;
-	float fogMinDist = 0.0;
-	vec4 fogColor = vec4( 1.0, 1.0, 1.0, 1.0 );
+        /*Only master thread does this*/
+        if(tid==0)
+        {
+            nthreads = omp_get_num_threads();
+            printf("Number of threads = %d\n", nthreads);
+        }
+    }    /*All threads join master thread and disband*/
 
-	if(reflection)
-		fColor = textureCube(texMap, R);
-	else{
-		if(textOn)
-			fColor = texture2D( texture, texCoord );
-		else
-			fColor = interpolatedColor;
+    printf("press any key to continue\n");
+    getchar();
 
-	}
-
-	if(fog>0.5)
-		fogFactor = (fogMaxDist - dist)/(fogMaxDist - fogMinDist);
-	else
-		fogFactor = pow(2.71, -dist*0.08);
-
-	fogFactor = clamp(fogFactor, 0.0, 1.0);
-
-	if(fog>2.0)
-		fogFactor = 1.0;
-
-	fColor = mix(fogColor, fColor, fogFactor);
 }
