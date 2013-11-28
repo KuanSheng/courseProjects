@@ -37,7 +37,7 @@ void main()
 	case 2:
    		fColor =vec4( 1.0 - irgb.r, 1.0 - irgb.g, 1.0 - irgb.b, 1.);
 		break;
-   	case 3:
+        case 3:
         case 5:
 		float i00 = dot(texture2D(texture,vST).rgb,       LUMCOEFFS );
         	float im1m1 = dot(texture2D(texture,vST-stpp).rgb,LUMCOEFFS );
@@ -105,13 +105,13 @@ void main()
 	case 7:
 		vec2 st = texCoord;
 		vec2 xy = ResS * st;
-		float beta1 = 2*PI*xy.y/120.0;
-		float beta2 = 2*PI*xy.x/250.0;
-		vec2 xy1 = xy + vec2(10*sin(beta1), 15*sin(beta2));
+	        float beta1 = 2*PI*xy.y/120.0;
+	        float beta2 = 2*PI*xy.x/250.0;
+	        vec2 xy1 = xy + vec2(10*sin(beta1), 15*sin(beta2));
 		st = xy1/ResS;
 		
-		vec3 irgb = texture( texture, st).rgb;
-		fColor = vec4(irgb, 1.);
+	        vec3 irgb = texture( texture, st).rgb;
+	        fColor = vec4(irgb, 1.);
 		break;
 	case 8:
        		vec2 st = texCoord;
