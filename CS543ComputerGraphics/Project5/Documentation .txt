@@ -1,0 +1,37 @@
+Project: Homework5 — Image Manipulation
+Name: Jiefeng He
+Contact: jhe@wpi.edu
+
+How to operate on my project:
+In windows system, double click the GLSLExperiment.sln to start the project. Then press F5 to run the project. The program behave as follows.
+
+User hits: 
+
+Key 'O': Display original picture (usain_bolt.bmp)
+Key 'L': Display picture with Luminance effect (gray scale)
+Key 'N': Display image negative
+Key 'D': Display image with edge detection effect
+Key 'E': Display image with embossing effect
+Key 'T': Display image with Toon rendering
+Key 'W': Display image with Twirl Transformation
+Key 'P': Display image with Ripple Transformation
+Key 'S': Display image with Spherical Transformation
+
+All the functions are implemented.
+
+Implementation analyze:
+In this project, we realize these very simple image processing technique by utilizing the fragment shader in OpenGL.
+
+The original picture comes from the starter file, and is a 512*512 bmp picture. Use a opensource library bitmap (.bmp) image file loader called libbnoread.[case 0]
+
+The Luminance effect is realized by change all 3 RGB value to a luminance value to show a gray scale picture.[case 1]
+
+The nagative effect is simply change R,G,B to 1-R, 1-G, 1-B.[case 2]
+
+The Edge effect is realized by using the sobel filter to extract the edge information. In this project, we set the threshold T to be 0.5 to show a obvious effect.[case 3]
+
+The embossing is realized by first replace color by luminance, then Highlight images differently depending on edge angles. it combined the Luminance effect and edge effect.[case 4]
+
+The Toon shader effect is based on the sobel filter and set the color large than threshold to be black and then quantize the rest. The threshold here is also 0.5;[case 5]
+
+The Twirl, Ripple, and Spherical Transformation is realized by methods presented in ppt.[case 6, case 7, case 8]

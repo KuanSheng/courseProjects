@@ -1,0 +1,18 @@
+﻿Build started 11/26/2012 2:04:05 PM.
+     1>Project "C:\temp\cs543_proj5_prep\cs543_proj5_prep\cs543_proj5_starter_image_manipulation_working\Graphics_Starting_Code\GLSLExperiment\GLSLExperiment.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\GLSLExperiment.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         GLSLExperiment.vcxproj -> C:\temp\cs543_proj5_prep\cs543_proj5_prep\cs543_proj5_starter_image_manipulation_working\Graphics_Starting_Code\Debug\GLSLExperiment.exe
+       FinalizeBuildStatus:
+         Deleting file "Debug\GLSLExperiment.unsuccessfulbuild".
+         Touching "Debug\GLSLExperiment.lastbuildstate".
+     1>Done Building Project "C:\temp\cs543_proj5_prep\cs543_proj5_prep\cs543_proj5_starter_image_manipulation_working\Graphics_Starting_Code\GLSLExperiment\GLSLExperiment.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.03
