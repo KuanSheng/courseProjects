@@ -1,158 +1,215 @@
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
+//
+// Display a Mandelbrot set
+//
 
-#define CHUNKSIZE 1000
-#define N    500000
-#define M    300
+// Uncomment the following line to use user-specified input values
+// #define USER_INPUT
 
-bool isPrime(int a){
-	for(int i=2; i<=sqrt(a*1.0); i++)
-		if(a%i==0)
-			return false;
-	return true;
+#ifdef USER_INPUT
+// Include the C++ iostreams classes for use when collecting user input
+#include <iostream>
+#endif 
+
+#include "Angel.h"
+#include "bmpread.h"
+
+typedef Angel::vec4 point4;
+typedef Angel::vec4 color4;
+
+// Use the C++ standard complex-number class.  It's a C++ template, so
+//   we create a typedef of simplify our code.
+#include <complex>
+typedef std::complex<float>  Complex;
+
+inline float Random() { return float(rand())/RAND_MAX; }
+
+GLuint Projection;
+
+/* default data*/
+/* can enter other values via command line arguments */
+
+#define CENTERX -0.5
+#define CENTERY 0.5
+#define HEIGHT 0.5
+#define WIDTH 0.5
+#define MAX_ITER 100
+
+/* N x M array to be generated */
+
+#define N 512
+#define M 512
+
+float height = HEIGHT;          /* size of window in complex plane */
+float width = WIDTH;
+
+
+int n = N;
+int m = M;
+
+
+bmpread_t bitmap;
+
+static  GLuint  texture = 0;
+int systemState = 0;
+//----------------------------------------------------------------------------
+
+void
+init( void )
+{
+	printf("Loading usain_bolt.bmp\n");
+
+	if(!bmpread("usain_bolt.bmp", 0, &bitmap))
+	{
+		fprintf(stderr, "%s:error loading bitmap file\n", "usain_bolt.bmp");
+		exit(1);
+	}
+
+    glActiveTexture( GL_TEXTURE0 );
+    glGenTextures( 1, &texture );
+    glBindTexture( GL_TEXTURE_2D, texture );
+
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, bitmap.width, bitmap.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bitmap.rgb_data );
+	bmpread_free(&bitmap);
+
+
+    // Create a vertex array object
+    GLuint vao;
+    glGenVertexArrays( 1, &vao );
+    glBindVertexArray( vao );
+
+    // Create and initialize a buffer object
+    GLuint buffer;
+    glGenBuffers( 1, &buffer );
+    glBindBuffer( GL_ARRAY_BUFFER, buffer );
+
+    point4 points[6] = {
+	point4( 0.0, 0.0, 0.0, 1.0 ),
+	point4( 0.0, 1.0, 0.0, 1.0 ),
+	point4( 1.0, 1.0, 0.0, 1.0 ),
+	point4( 1.0, 1.0, 0.0, 1.0 ),
+	point4( 1.0, 0.0, 0.0, 1.0 ),
+	point4( 0.0, 0.0, 0.0, 1.0 )
+    };
+
+    glBufferData( GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW );
+
+    // Load shaders and use the resulting shader program
+    GLuint program = InitShader( "vshader1.glsl", "fshader1.glsl" );
+    glUseProgram( program );
+
+    // set up vertex arrays
+    GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+    glEnableVertexAttribArray( vPosition );
+    glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(0) );
+
+    // Since our texture coordinates match our vertex positions, we
+    //   can reuse the position data for our texture coordinates.
+    GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" ); 
+    glEnableVertexAttribArray( vTexCoord );
+    glVertexAttribPointer( vTexCoord, 4, GL_FLOAT, GL_FALSE, 0,
+			   BUFFER_OFFSET(0) );
+
+    Projection = glGetUniformLocation( program, "Projection" );
+
+    // Set our texture samples to the active texture unit
+    glUniform1i( glGetUniformLocation(program, "texture"), 0 );
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glClearColor( 1.0, 1.0, 1.0, 1.0 );
 }
 
-double slowDownMultiply(double (&A)[M][M], double x[], int p, int q)
+//----------------------------------------------------------------------------
+
+void
+reshape( int width, int height )
 {
-	int i=0;
-	while(i<1000)
-		i++;
-	return A[p][q] * x[p];
+    glViewport( 0, 0, width, height );
+    mat4 projection = Ortho( 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
+    glUniformMatrix4fv( Projection, 1, GL_TRUE, projection );
+
 }
 
-int main(int argc, char *argv[])
+//----------------------------------------------------------------------------
+
+void
+keyboard( unsigned char key, int x, int y )
 {
-    int nthreads, tid, i, count=1;
-	clock_t start, end;
-	double processingTime, time1, time2;
+    switch( key ) {
+    case 'O':
+            systemState = 0;
+            break;
+    case 'L':
+            systemState = 1;
+            break;
+    case 'N':
+            systemState = 2;
+            break;
+    case 'D':
+            systemState = 3;
+            break;
+    case 'E':
+            systemState = 4;
+            break;
+    case 'T':
+            systemState = 5;
+            break;
+    case 'W':
+            systemState = 6;
+            break;
+    case 'P':
+            systemState = 7;
+            break;
+    case 'S':
+            systemState = 8;
+            break;
+	case 033: // Escape Key
+	case 'q': case 'Q':
+	    exit( EXIT_SUCCESS );
+	    break;
+    }
+    
+    glutPostRedisplay();
+}
 
-	printf("Problem1: Count the number of prime numbers\n");
+//----------------------------------------------------------------------------
 
-	start = clock();
-	for(i=3; i<=N; i+=2)
-		if(isPrime(i))
-			count++;
-	end = clock();
+void
+display()
+{
+    glClear( GL_COLOR_BUFFER_BIT );
+    glUniform1i( glGetUniformLocation(program, "systemState"), systemState);
+    glDrawArrays( GL_TRIANGLES, 0, 6 );
+    glutSwapBuffers();
+}
 
-	printf("There are %d prime numbers which is equal or less than %d\n", count, N);
-	processingTime = (double) (end - start)/CLOCKS_PER_SEC;
-	printf("Time used for single thread program is %fs\n", processingTime);
-	printf("\n");
+//----------------------------------------------------------------------------
 
-	count=1;
-	int chunk = CHUNKSIZE;
+int
+main( int argc, char *argv[] )
+{
+    glutInit( &argc, argv );
+    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB );
+    glutInitWindowSize( N, M );
+    glutInitContextVersion( 3, 3 );
+//    glutInitContextProfile( GLUT_CORE_PROFILE );
+    glutCreateWindow( "Image Manipulation" );
 
-	time1 = omp_get_wtime();
-    #pragma omp parallel shared(nthreads, count) private(i, tid)
-    {
-        tid = omp_get_thread_num();
-		if(tid==0){
-			nthreads = omp_get_num_threads();
-		}
-     
-		#pragma omp for schedule(dynamic, chunk)
-		for(i=3; i<=N; i+=2)
-			if(isPrime(i)){
-				#pragma omp atomic
-				count++;
-			}
-	}
-	time2 = omp_get_wtime();
-	printf("There are %d prime numbers which is equal or less than %d\n", count, N);
-	printf("Time used for %d dynamic scheduling threads is %fs\n", nthreads, time2-time1);
-	printf("\n");
+	glewExperimental = GL_TRUE;
 
-	count=1;
-	time1 = omp_get_wtime();
-    #pragma omp parallel shared(nthreads, count) private(i, tid)
-    {
-        tid = omp_get_thread_num();
-		if(tid==0){
-			nthreads = omp_get_num_threads();
-		}
-     
-		#pragma omp for schedule(static, chunk)
-		for(i=3; i<=N; i+=2)
-			if(isPrime(i)){
-				#pragma omp atomic
-				count++;
-			}
-	}
-	time2 = omp_get_wtime();
-	printf("There are %d prime numbers which is equal or less than %d\n", count, N);
-	printf("Time used for %d static scheduling threads is %fs\n", nthreads, time2-time1);
-	printf("\n");
+    glewInit();
 
-	/************************************************************************************/
-	printf("Problem2: Matrix vector multiplication\n");
+    init();
 
-	double A[M][M], x[M], y[M];
-	int j=0;
-	//initialization
-	for(i=0; i<M; i++)
-		for(j=0; j<M; j++)
-			A[i][j] = i*1.234;
+    glutDisplayFunc( display );
+    glutReshapeFunc( reshape );
+    glutKeyboardFunc( keyboard );
 
-	for(i=0; i<M; i++)
-		x[i] = i*1.987;
-
-	for(i=0; i<M; i++)
-		y[i] = 0.0;
-
-	start = clock();
-	for(i=0; i<M; i++)
-		for(j=0; j<M; j++)
-			y[i] += slowDownMultiply(A, x, i, j);
-	end = clock();
-	processingTime = (double) (end - start)/CLOCKS_PER_SEC;
-	printf("Time used for single thread program is %fs\n", processingTime);
-	printf("\n");
-
-	for(i=0; i<M; i++)
-		y[i] = 0.0;
-	chunk = 10;
-
-	time1 = omp_get_wtime();
-    #pragma omp parallel shared(nthreads) private(i, j, tid)
-    {
-        tid = omp_get_thread_num();
-		if(tid==0){
-			nthreads = omp_get_num_threads();
-		}
-     
-		#pragma omp for schedule(dynamic, chunk)
-		for(i=0; i<M; i++)
-			for(j=0; j<M; j++)
-				y[i] += slowDownMultiply(A, x, i, j);
-	}
-	time2 = omp_get_wtime();
-	printf("Time used for %d dynamic scheduling threads is %fs\n", nthreads, time2-time1);
-	printf("\n");
-
-	for(i=0; i<M; i++)
-		y[i] = 0.0;
-	chunk = 10;
-
-	time1 = omp_get_wtime();
-    #pragma omp parallel shared(nthreads) private(i, j, tid)
-    {
-        tid = omp_get_thread_num();
-		if(tid==0){
-			nthreads = omp_get_num_threads();
-		}
-     
-		#pragma omp for schedule(static, chunk)
-		for(i=0; i<M; i++)
-			for(j=0; j<M; j++)
-				y[i] += slowDownMultiply(A, x, i, j);
-	}
-	time2 = omp_get_wtime();
-	printf("Time used for %d static scheduling threads is %fs\n", nthreads, time2-time1);
-	printf("\n");
-
-    printf("press any key to continue\n");
-    getchar();
+    glutMainLoop();
+    return 0;
 }
