@@ -24,7 +24,7 @@ typedef std::complex<float>  Complex;
 inline float Random() { return float(rand())/RAND_MAX; }
 
 GLuint Projection;
-
+GLuint program;
 /* default data*/
 /* can enter other values via command line arguments */
 
@@ -99,7 +99,7 @@ init( void )
     glBufferData( GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW );
 
     // Load shaders and use the resulting shader program
-    GLuint program = InitShader( "vshader1.glsl", "fshader1.glsl" );
+    program = InitShader( "vshader1.glsl", "fshader1.glsl" );
     glUseProgram( program );
 
     // set up vertex arrays
