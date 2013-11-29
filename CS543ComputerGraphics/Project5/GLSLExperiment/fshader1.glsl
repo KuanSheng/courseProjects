@@ -24,20 +24,20 @@ void main()
 
     float uD = 45.0;
     float uR = 0.5;
-	vec2 st = texCoord;
-	vec2 xy, dxy, xy1;
-	float r, beta, beta1, beta2;
+    vec2 st = texCoord;
+    vec2 xy, dxy, xy1;
+    float r, beta, beta1, beta2;
     switch(systemState){
 	case 0:
-	    	fColor = texture2D( texture, texCoord );
+	        fColor = texture2D( texture, texCoord );
 		break;
 	case 1:
-    		float luminance = dot(irgb, LUMCOEFFS);
-    		fColor = vec4( luminance, luminance,luminance, 1.);
+    	        float luminance = dot(irgb, LUMCOEFFS);
+    	        fColor = vec4( luminance, luminance,luminance, 1.);
 		break;
 	case 2:
-   		fColor =vec4( 1.0 - irgb.r, 1.0 - irgb.g, 1.0 - irgb.b, 1.);
-		break;
+   	        fColor =vec4( 1.0 - irgb.r, 1.0 - irgb.g, 1.0 - irgb.b, 1.);
+	        break;
    	case 3:
 
     case 5:
